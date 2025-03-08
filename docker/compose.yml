@@ -6,7 +6,7 @@ services:
     ports:
       - "80:80"
     volumes:
-      - ../backend:/var/www/html
+      - ../:/var/www/html
     depends_on:
       - frontend
       - backend
@@ -19,7 +19,7 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - ../frontend:/frontend
+      - ../:/frontend
     depends_on:
       - backend
   
@@ -34,7 +34,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ../backend:/var/www/html
+      - ../:/var/www/html
     depends_on:
       - db
 
