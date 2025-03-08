@@ -8,6 +8,6 @@ WORKDIR /infra
 # RUN yarn install --frozen-lockfile
 
 # cdk の全ソースコードをコピー
-COPY ../ /infra
+COPY ../infra /infra
 
 # CMD ["npx", "cdk", "deploy"]

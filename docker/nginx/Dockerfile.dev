@@ -3,6 +3,4 @@ FROM nginx:1.27.4-alpine
 ENV TZ=Asia/Tokyo
 
 # nginx config file
-COPY ./docker/nginx/default-dev.conf /etc/nginx/conf.d/default.conf
-
-WORKDIR /var/www/html
+COPY default-dev.conf /etc/nginx/conf.d/default.conf

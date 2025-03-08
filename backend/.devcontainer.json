@@ -1,0 +1,34 @@
+{
+    "name": "Laravel dev",
+    "dockerComposeFile": "../docker/compose.yml",
+    "service": "backend",
+    "workspaceFolder": "/backend",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "vmsynkov.colonize",
+                "ms-azuretools.vscode-docker",
+                "formulahendry.auto-close-tag",
+                "usernamehw.errorlens",
+                "mhutchie.git-graph",
+                "donjayamanne.githistory",
+                "GitHub.copilot",
+                "GitHub.copilot-chat",
+                "vincaslt.highlight-matching-tag",
+                "oderwat.indent-rainbow",
+                "MS-CEINTL.vscode-language-pack-ja",
+                "IBM.output-colorizer",
+                "christian-kohler.path-intellisense",
+                "bmewburn.vscode-intelephense-client",
+                "vscode-icons-team.vscode-icons",
+                "bierner.markdown-mermaid",
+                "corschenzi.mermaid-graphical-editor",
+                "redhat.vscode-yaml",
+                "porifa.laravel-intelephense",
+                "GitHub.vscode-github-actions",
+                "junstyle.php-cs-fixer"
+            ]
+        }
+    },
+    "remoteUser": "root"
+}

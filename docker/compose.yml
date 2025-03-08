@@ -2,9 +2,11 @@ services:
   web:
     build:
       context: ./nginx
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     ports:
       - "80:80"
+    volumes:
+      - ../backend:/var/www/html
     depends_on:
       - frontend
       - backend
@@ -12,21 +14,27 @@ services:
 
   frontend:
     build: 
-      context: ./frontend
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: docker/next/Dockerfile
     ports:
       - "3000:3000"
     volumes:
-      - ../frontend:/app
+      - ../frontend:/frontend
     depends_on:
       - backend
   
   backend:
     build:
-      context: ./backend
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: docker/laravel/Dockerfile
+      args:
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
+        ENV_EXTENSION: ${ENV_EXTENSION:-dev}
     ports:
       - "8000:8000"
+    volumes:
+      - ../backend:/var/www/html
     depends_on:
       - db
 
@@ -41,15 +49,16 @@ services:
     volumes:
       - db-data:/var/lib/postgresql/data
   
-  cdk:
-    build:
-      context: ./cdk
-      dockerfile: Dockerfile
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    depends_on:
-      - backend
-      - frontend
+  # cdk:
+  #   build:
+  #     context: ./cdk
+  #     dockerfile: Dockerfile
+  #   volumes:
+  #     - ../infra:.
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #   depends_on:
+  #     - backend
+  #     - frontend
 
 volumes:
   db-data:
