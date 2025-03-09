@@ -7,11 +7,7 @@ use Illuminate\Foundation\Http\Kernel as HttpKernel;
 class Kernel extends HttpKernel
 {
     /**
-     * The application's global HTTP middleware stack.
-     *
-     * These middleware are run during every request to your application.
-     *
-     * @var array<int, class-string|string>
+     * グローバルミドルウェア
      */
     protected $middleware = [
         // \App\Http\Middleware\TrustHosts::class,
@@ -24,22 +20,28 @@ class Kernel extends HttpKernel
     ];
 
     /**
-     * The application's route middleware groups.
-     *
-     * @var array<string, array<int, class-string|string>>
+     * ミドルウェアグループの設定
      */
     protected $middlewareGroups = [
         'web' => [
+            // Sanctumでフロントエンドからのクッキー認証を有効にする
+            \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
             \App\Http\Middleware\EncryptCookies::class,
             \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
+            // セッション開始
             \Illuminate\Session\Middleware\StartSession::class,
+
             \Illuminate\View\Middleware\ShareErrorsFromSession::class,
+
+            // CSRF保護
             \App\Http\Middleware\VerifyCsrfToken::class,
+
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
         ],
 
         'api' => [
-            // \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
+            // セッションやCSRFを使わない場合は、ここはシンプルにする
+            // 必要に応じて追加
             \Illuminate\Routing\Middleware\ThrottleRequests::class.':api',
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
         ],
