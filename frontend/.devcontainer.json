@@ -46,7 +46,7 @@
       }
     },
     "forwardPorts": [3000],
-    "workspaceFolder": "/frontend",
+    "workspaceFolder": "/var/www/html",
     "postCreateCommand": "npm install",
     "remoteUser": "node"
   }
