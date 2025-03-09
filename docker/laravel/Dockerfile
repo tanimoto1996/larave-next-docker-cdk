@@ -5,7 +5,7 @@ FROM php:8.4-fpm
 ARG UID=1000
 ARG GID=1000
 
-WORKDIR /var/www/html/backend
+WORKDIR /var/www/html
 
 # install-php-extensionsスクリプトを使用せずにPHP拡張機能を手動でインストールする
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -45,5 +45,7 @@ RUN mkdir -p /var/www/html/storage && \
 
 RUN mkdir -p /var/www/html/bootstrap/cache && \
     chmod -R 775 /var/www/html/bootstrap/cache
+
+WORKDIR /var/www/html/backend
 
 CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
