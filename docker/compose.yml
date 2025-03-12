@@ -13,16 +13,17 @@ services:
       - db
 
   frontend:
-    build: 
+    build:
       context: ..
       dockerfile: docker/next/Dockerfile
     ports:
       - "3000:3000"
     volumes:
       - ../:/var/www/html
+      - /var/www/html/frontend/node_modules/ # 初回インストール時にDockerfileで生成したものを上書きされないようにする 
     depends_on:
       - backend
-  
+
   backend:
     build:
       context: ..
@@ -48,7 +49,6 @@ services:
       POSTGRES_DB: postgres
     volumes:
       - db-data:/var/lib/postgresql/data
-  
   # cdk:
   #   build:
   #     context: ./cdk
