@@ -47,6 +47,6 @@
     },
     "forwardPorts": [3000],
     "workspaceFolder": "/var/www/html",
-    "postCreateCommand": "npm install",
-    "remoteUser": "node"
+    "postCreateCommand": "cd frontend && npm install",
+    "remoteUser": "root"
   }
