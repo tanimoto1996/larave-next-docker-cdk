@@ -21,6 +21,7 @@ services:
     volumes:
       - ../:/var/www/html
       - /var/www/html/frontend/node_modules/ # 初回インストール時にDockerfileで生成したものを上書きされないようにする 
+      - ~/.ssh:/root/.ssh
     depends_on:
       - backend
 
@@ -36,6 +37,7 @@ services:
       - "8000:8000"
     volumes:
       - ../:/var/www/html
+      - ~/.ssh:/root/.ssh
     depends_on:
       - db
 
