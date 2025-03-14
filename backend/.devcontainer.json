@@ -3,12 +3,6 @@
     "dockerComposeFile": "../docker/compose.yml",
     "service": "backend",
     "workspaceFolder": "/var/www/html",
-    // docker on dockerを使用できるように docker cli をインストール
-    "features": {
-        "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
-            "version": "latest"
-        }
-    },
     "customizations": {
         "vscode": {
             "extensions": [

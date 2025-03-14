@@ -28,3 +28,18 @@ php artisan serve --host=0.0.0.0 --port=8000
 つまり、ビルド時にコピーされたファイルも、volumes でマウントされると上書きされることになります。
 
 このため、node_modules などで /var/www/html/frontend/node_modules/ のようなボリューム設定をしている場合は、Dockerfile でインストールした node_modules を保持するための工夫です。
+
+### グローバルインストール
+
+1. npm install -g @devcontainers/cli
+
+Frontend 起動
+devcontainer up --workspace-folder ./frontend/
+
+Backend 起動
+devcontainer up --workspace-folder ./backend/
+
+VSCode から接続：
+F1 > Remote-Containers: Attach to Running Container
+
+該当コンテナを選択
