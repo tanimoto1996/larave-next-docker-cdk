@@ -1,6 +1,8 @@
+'use client';
+
 import { useState, FormEvent, ChangeEvent } from 'react';
-import { useRouter } from 'next/router';
-import axiosClient from '../../lib/axios';
+import { useRouter } from 'next/navigation';
+import axiosClient from '../../../lib/axios';
 
 type LoginCredentials = {
     email: string;
