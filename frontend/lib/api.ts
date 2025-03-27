@@ -1,4 +1,4 @@
-import axiosClient from 'axios'; // axiosClient は既にあるはず
+import axiosClient from '../lib/axios';
 
 export const getUser = async () => {
     try {
