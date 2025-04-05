@@ -4,10 +4,19 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
+/**
+ * パーソナルアクセストークンテーブル作成マイグレーション
+ * 
+ * API認証に使用するパーソナルアクセストークンを管理するテーブルを作成します。
+ * Sanctumパッケージを使用したトークンベースの認証システムの基盤となります。
+ */
 return new class extends Migration
 {
     /**
-     * Run the migrations.
+     * マイグレーション実行
+     * 
+     * パーソナルアクセストークンテーブルを作成し、必要なカラムを定義します。
+     * トークン名、ハッシュ化されたトークン値、許可された機能、有効期限などを管理します。
      */
     public function up(): void
     {
@@ -24,7 +33,9 @@ return new class extends Migration
     }
 
     /**
-     * Reverse the migrations.
+     * マイグレーションの巻き戻し
+     * 
+     * 作成したパーソナルアクセストークンテーブルを削除します。
      */
     public function down(): void
     {

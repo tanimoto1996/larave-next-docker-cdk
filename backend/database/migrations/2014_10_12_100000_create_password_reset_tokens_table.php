@@ -4,10 +4,17 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
+/**
+ * パスワードリセットトークンテーブル作成マイグレーション
+ * 
+ * ユーザーがパスワードをリセットする際に使用するトークンを管理するテーブルを作成します。
+ */
 return new class extends Migration
 {
     /**
-     * Run the migrations.
+     * マイグレーション実行
+     * 
+     * パスワードリセットトークンテーブルを作成し、トークン管理に必要なカラムを定義します。
      */
     public function up(): void
     {
@@ -19,7 +26,9 @@ return new class extends Migration
     }
 
     /**
-     * Reverse the migrations.
+     * マイグレーションの巻き戻し
+     * 
+     * 作成したパスワードリセットトークンテーブルを削除します。
      */
     public function down(): void
     {

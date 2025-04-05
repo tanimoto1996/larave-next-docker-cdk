@@ -4,10 +4,19 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
+/**
+ * 失敗したジョブテーブル作成マイグレーション
+ * 
+ * キューに入れられたジョブの処理が失敗した際の情報を保存するテーブルを作成します。
+ * 失敗したジョブの詳細とエラー情報を記録し、後で分析や再試行ができるようにします。
+ */
 return new class extends Migration
 {
     /**
-     * Run the migrations.
+     * マイグレーション実行
+     * 
+     * 失敗したジョブテーブルを作成し、必要なカラムを定義します。
+     * 接続情報、キュー名、ペイロード、例外情報などを保存します。
      */
     public function up(): void
     {
@@ -23,7 +32,9 @@ return new class extends Migration
     }
 
     /**
-     * Reverse the migrations.
+     * マイグレーションの巻き戻し
+     * 
+     * 作成した失敗したジョブテーブルを削除します。
      */
     public function down(): void
     {
