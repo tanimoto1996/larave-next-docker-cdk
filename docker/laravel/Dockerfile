@@ -8,6 +8,7 @@ WORKDIR /var/www/html
 
 # PHP拡張機能のインストール
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    openssh-client \
     libpng-dev \
     libjpeg62-turbo-dev \
     libfreetype6-dev \
