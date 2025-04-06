@@ -65,7 +65,7 @@ class ArticleController extends Controller
         $perPage = $request->per_page ?? 15;
         $articles = $query->paginate($perPage);
 
-        return ApiResponse::success($articles);
+        return ApiResponse::success($articles->items());
     }
 
     /**
@@ -206,7 +206,7 @@ class ArticleController extends Controller
 
         $article->delete();
 
-        return ApiResponse::success(null, '記事が削除されました');
+        return response()->noContent();
     }
 
     /**

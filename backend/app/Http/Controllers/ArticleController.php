@@ -49,7 +49,7 @@ class ArticleController extends Controller
         $perPage = $request->per_page ?? 10;
         $articles = $query->paginate($perPage);
 
-        return ApiResponse::success($articles);
+        return ApiResponse::success($articles->items());
     }
 
     /**
