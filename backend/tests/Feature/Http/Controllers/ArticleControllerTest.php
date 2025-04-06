@@ -8,6 +8,8 @@ use App\Models\Author;
 use App\Models\Category;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
+use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\Attributes\BeforeClass;
 
 class ArticleControllerTest extends TestCase
 {
@@ -43,6 +45,8 @@ class ArticleControllerTest extends TestCase
 
     /**
      * 初期セットアップ
+     * テスト実行前にカテゴリと著者を作成する
+     * 
      * @return void
      */
     protected function setUp(): void
@@ -54,8 +58,10 @@ class ArticleControllerTest extends TestCase
 
     /**
      * 記事一覧の取得をテスト
+     * 公開済みの記事のみが取得できることを確認する
      */
-    public function test_index_displays_published_articles_for_public(): void
+    #[Test]
+    public function index_displays_published_articles_for_public(): void
     {
         // 公開済み記事を3つ作成
         Article::factory()->count(3)->create([
@@ -77,9 +83,11 @@ class ArticleControllerTest extends TestCase
     }
 
     /**
-     * 記事詳細の取得をテスト（公開APIによる単一記事取得）
+     * 記事詳細の取得をテスト
+     * 公開APIによる単一記事取得でスラグを使って記事が取得できることを確認する
      */
-    public function test_show_displays_published_article_by_slug(): void
+    #[Test]
+    public function show_displays_published_article_by_slug(): void
     {
         $article = Article::factory()->create([
             'slug' => 'test-article',
@@ -104,8 +112,10 @@ class ArticleControllerTest extends TestCase
 
     /**
      * 管理者の記事一覧取得をテスト
+     * 管理者は公開/非公開を問わず全ての記事を取得できることを確認する
      */
-    public function test_admin_index_displays_all_articles(): void
+    #[Test]
+    public function admin_index_displays_all_articles(): void
     {
         $admin = $this->createAdmin();
         
@@ -128,8 +138,10 @@ class ArticleControllerTest extends TestCase
 
     /**
      * 管理者の記事詳細取得をテスト
+     * 管理者が特定の記事の詳細情報を取得できることを確認する
      */
-    public function test_admin_show_displays_article_details(): void
+    #[Test]
+    public function admin_show_displays_article_details(): void
     {
         $admin = $this->createAdmin();
         $article = Article::factory()->create([
@@ -152,8 +164,10 @@ class ArticleControllerTest extends TestCase
 
     /**
      * 管理者による記事作成をテスト
+     * 管理者が新しい記事を作成でき、データベースに保存されることを確認する
      */
-    public function test_admin_store_creates_new_article(): void
+    #[Test]
+    public function admin_store_creates_new_article(): void
     {
         $admin = $this->createAdmin();
 
@@ -186,8 +200,10 @@ class ArticleControllerTest extends TestCase
 
     /**
      * 管理者による記事更新をテスト
+     * 管理者が既存の記事を更新でき、変更が反映されることを確認する
      */
-    public function test_admin_update_modifies_article(): void
+    #[Test]
+    public function admin_update_modifies_article(): void
     {
         $admin = $this->createAdmin();
         $article = Article::factory()->create([
@@ -222,8 +238,10 @@ class ArticleControllerTest extends TestCase
 
     /**
      * 管理者による記事削除をテスト
+     * 管理者が記事を削除でき、データベースから記事が削除されることを確認する
      */
-    public function test_admin_destroy_deletes_article(): void
+    #[Test]
+    public function admin_destroy_deletes_article(): void
     {
         $admin = $this->createAdmin();
         $article = Article::factory()->create([
@@ -240,8 +258,10 @@ class ArticleControllerTest extends TestCase
 
     /**
      * 一般ユーザーは管理者用APIにアクセスできないことをテスト
+     * 一般ユーザーが管理者向けエンドポイントにアクセスすると403エラーが返されることを確認する
      */
-    public function test_regular_user_cannot_access_admin_endpoints(): void
+    #[Test]
+    public function regular_user_cannot_access_admin_endpoints(): void
     {
         $user = $this->createUser();
         $article = Article::factory()->create([
@@ -258,8 +278,10 @@ class ArticleControllerTest extends TestCase
 
     /**
      * 未認証ユーザーは管理者用APIにアクセスできないことをテスト
+     * 認証されていないユーザーが管理者向けエンドポイントにアクセスすると401エラーが返されることを確認する
      */
-    public function test_unauthenticated_user_cannot_access_admin_endpoints(): void
+    #[Test]
+    public function unauthenticated_user_cannot_access_admin_endpoints(): void
     {
         $article = Article::factory()->create([
             'category_id' => $this->category->id,
