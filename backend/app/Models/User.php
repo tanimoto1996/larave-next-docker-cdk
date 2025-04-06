@@ -78,4 +78,20 @@ class User extends Authenticatable
         return $this->belongsToMany(Article::class, 'article_likes')
             ->withTimestamps();
     }
+    
+    /**
+     * ユーザーが管理者かどうかを判定
+     * 
+     * @return bool
+     */
+    public function isAdmin(): bool
+    {
+        // 実際のプロジェクトでは、DBにrole/is_admin列を追加するか
+        // 別のロールテーブルを用意するのが望ましい
+        // 現状では特定のメールアドレスを管理者として扱う
+        return in_array($this->email, [
+            'yumenikki2@gmail.com',
+            'k-tanimoto@mamiya-its.co.jp'
+        ]);
+    }
 }
