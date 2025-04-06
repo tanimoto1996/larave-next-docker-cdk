@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Author;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -10,16 +11,24 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 class AuthorFactory extends Factory
 {
     /**
-     * モデルのデフォルト状態の定義
+     * The name of the factory's corresponding model.
+     *
+     * @var string
+     */
+    protected $model = Author::class;
+
+    /**
+     * Define the model's default state.
      *
      * @return array<string, mixed>
      */
     public function definition(): array
     {
         return [
-            'name' => fake('ja_JP')->name(),
-            'bio' => fake('ja_JP')->paragraph(3),
-            'profile_image' => 'authors/author-' . fake()->numberBetween(1, 10) . '.jpg',
+            'name' => $this->faker->name(),
+            'bio' => $this->faker->paragraph(),
+            'created_at' => now(),
+            'updated_at' => now(),
         ];
     }
 }
