@@ -41,6 +41,10 @@ class ArticleControllerTest extends TestCase
         ]);
     }
 
+    /**
+     * 初期セットアップ
+     * @return void
+     */
     protected function setUp(): void
     {
         parent::setUp();
