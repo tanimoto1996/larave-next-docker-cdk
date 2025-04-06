@@ -12,20 +12,20 @@ use Illuminate\Support\Str;
 class UserFactory extends Factory
 {
     /**
-     * The current password being used by the factory.
+     * ユーザーのデフォルトパスワード
      */
     protected static ?string $password;
 
     /**
-     * Define the model's default state.
+     * モデルのデフォルト状態の定義
      *
      * @return array<string, mixed>
      */
     public function definition(): array
     {
         return [
-            'name' => fake()->name(),
-            'email' => fake()->unique()->safeEmail(),
+            'name' => fake('ja_JP')->name(),
+            'email' => fake('ja_JP')->unique()->safeEmail(),
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
@@ -33,7 +33,7 @@ class UserFactory extends Factory
     }
 
     /**
-     * Indicate that the model's email address should be unverified.
+     * メール未確認状態のモデルを示す
      */
     public function unverified(): static
     {
