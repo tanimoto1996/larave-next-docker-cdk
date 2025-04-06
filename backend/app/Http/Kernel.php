@@ -40,8 +40,15 @@ class Kernel extends HttpKernel
         ],
 
         'api' => [
-            // セッションやCSRFを使わない場合は、ここはシンプルにする
-            // 必要に応じて追加
+            // APIがSPAからアクセスされる場合のみ必要
+            \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
+            
+            // セッション関連ミドルウェア
+            \App\Http\Middleware\EncryptCookies::class,
+            \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
+            \Illuminate\Session\Middleware\StartSession::class,
+            
+            // レート制限とルートバインディング（常に必要）
             \Illuminate\Routing\Middleware\ThrottleRequests::class.':api',
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
         ],

@@ -53,7 +53,7 @@ export default function Login() {
             await axiosClient.get('/sanctum/csrf-cookie');
 
             // シンプルなオブジェクトでログイン
-            const response = await axiosClient.post('/login', {
+            const response = await axiosClient.post('/api/login', {
                 email: credentials.email,
                 password: credentials.password
             });
