@@ -66,7 +66,7 @@ class ArticleController extends Controller
                 }]);
             }])
             ->published()
-            ->findBySlug($slug)
+            ->where('slug', $slug)
             ->first();
 
         if (!$article) {
@@ -77,7 +77,6 @@ class ArticleController extends Controller
         }
 
         return response()->json([
-            'success' => true,
             'data' => $article,
         ]);
     }
