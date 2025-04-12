@@ -1,45 +1,27 @@
-# Laravel/Next/CDK/Docker の環境構築
+# プロジェクトドキュメント
 
-Laravel 起動
-php artisan serve --host=0.0.0.0 --port=8000
+このディレクトリには、プロジェクトの開発・運用に関する様々な文書が含まれています。
 
-# Laravel Sanctum の設定
+## 目次
 
-### Laravel 側
+### コーディング規則
 
-1. cors の設定調整
-2. Kernel の middleware でセッション開始などの順番を調整する
-3. .env で SESSION_DRIVER,SESSION_DOMAIN,SANCTUM_STATEFUL_DOMAINS,SESSION_SECURE_COOKIE,SESSION_COOKIE の設定をする
-4. 今回は web ユーザーで対応したが、config/auth.php に sanctum の設定がないので注意が必要。
+- [コーディング規約](./docs/coding-standards.md) - Laravel プロジェクトのコーディング規約
 
-### Next 側
+### 環境設定
 
-1. axios をインストール後、ヘルパー関数を作成、withCredentials と withXSRFToken は忘れない。
-2. app/以下に pages ディレクトリを作成し、/sanctum/csrf-cookie 　 → 　 login の流れで cookie での認証をする
-3. クライアント側は cookie で保持、サーバー側は databace で保持する
-4. ログイン後に、Laravel の Auth::user() でログイン状態のユーザー情報を取得する
+- [開発環境セットアップ](./docs/environment/setup.md) - ローカル開発環境のセットアップ手順
 
-# Docker compose の流れ
+### 認証
 
-1. Dockerfile 内の COPY や ADD コマンドは、イメージビルド時に実行され、コンテナ内にファイルをコピーします
-2. volumes 設定は、コンテナ起動時に適用され、ホストとコンテナ間のディレクトリを共有します
-3. volumes 設定は Dockerfile の COPY/ADD コマンドよりも優先されます（同じパスの場合）
+- [Laravel Sanctum 設定](./docs/authentication/sanctum-setup.md) - Laravel Sanctum を使った認証システムの設定
 
-つまり、ビルド時にコピーされたファイルも、volumes でマウントされると上書きされることになります。
+### インフラストラクチャ
 
-このため、node_modules などで /var/www/html/frontend/node_modules/ のようなボリューム設定をしている場合は、Dockerfile でインストールした node_modules を保持するための工夫です。
+- [Docker Compose ガイド](./docs/docker/compose-guide.md) - Docker Compose の使用方法と注意点
 
-### グローバルインストール
+## ドキュメントの貢献
 
-1. npm install -g @devcontainers/cli
+ドキュメントは常に最新の状態を保つことが重要です。プロジェクトに変更を加えた場合は、関連するドキュメントも更新してください。
 
-Frontend 起動
-devcontainer up --workspace-folder ./frontend/
-
-Backend 起動
-devcontainer up --workspace-folder ./backend/
-
-VSCode から接続：
-F1 > Remote-Containers: Attach to Running Container
-
-該当コンテナを選択
+新しいドキュメントを追加する場合は、このインデックスに適切なセクションと共にリンクを追加してください。
