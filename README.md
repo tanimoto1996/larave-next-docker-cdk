@@ -10,7 +10,8 @@
 
 ### コーディング規則
 
-- [コーディング規約](./docs/coding-standards.md) - Laravel プロジェクトのコーディング規約
+- [Laravel コーディング規約](./docs/coding-standards.md) - Laravel プロジェクトのコーディング規約
+- [Next.js コーディング規約](./docs/coding-standards-nextjs.md) - Next.js プロジェクトのコーディング規約
 
 ### 環境設定
 
