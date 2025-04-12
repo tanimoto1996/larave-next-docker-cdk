@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import {
     AppShell,
     Burger,
@@ -9,24 +10,24 @@ import {
     Avatar,
     Box,
     Button,
-    SimpleGrid,
     Paper,
     Title,
     ThemeIcon,
-    rem,
-    Card,
     Stack,
     NavLink,
     Divider,
     useMantineTheme,
     ActionIcon,
     Tooltip,
-    Badge
+    Table,
+    Menu,
+    Modal,
+    LoadingOverlay,
 } from '@mantine/core';
 import {
     IconHome2,
-    IconGauge,
-    IconDeviceDesktopAnalytics,
+    IconArticle,
+    IconCategory,
     IconUser,
     IconSettings,
     IconLogout,
@@ -34,46 +35,106 @@ import {
     IconMoonStars,
     IconBell,
     IconSearch,
-    IconUsers,
-    IconEye,
-    IconHeart,
-    IconCoin,
-    IconChevronUp,
-    IconChevronDown
+    IconPlus,
+    IconEdit,
+    IconTrash,
+    IconDotsVertical,
+    IconMessage,
 } from '@tabler/icons-react';
+import { useDisclosure } from '@mantine/hooks';
+import { getArticles } from '../../../lib/api';
+
+// 記事データの型定義
+interface Article {
+    id: number;
+    title: string;
+    is_published: boolean;
+    published_at: string;
+    slug: string;
+    category?: { name: string };
+    author?: { name: string };
+    likes_count: number;
+    comments_count: number;
+}
 
 // サイドバーのナビゲーションアイテム
 const navItems = [
-    { icon: IconHome2, label: 'ホーム', color: 'blue' },
-    { icon: IconGauge, label: 'ダッシュボード', color: 'teal', active: true },
-    { icon: IconDeviceDesktopAnalytics, label: '分析', color: 'violet' },
-    { icon: IconUser, label: 'アカウント', color: 'orange' },
-    { icon: IconSettings, label: '設定', color: 'gray' }
-];
-
-// 統計データ
-const stats = [
-    { title: '総訪問者数', value: '13.4K', diff: 10.1, icon: IconEye, color: 'blue' },
-    { title: '新規登録', value: '4,325', diff: 18.2, icon: IconUsers, color: 'teal' },
-    { title: 'エンゲージメント', value: '28.6%', diff: -2.3, icon: IconHeart, color: 'pink' },
-    { title: '総収益', value: '¥120,230', diff: 12.5, icon: IconCoin, color: 'orange' }
-];
-
-// 最近のアクティビティ
-const recentActivities = [
-    { title: '新規ユーザー登録', time: '10分前', type: 'user' },
-    { title: '投稿「AIの未来」が公開', time: '1時間前', type: 'post' },
-    { title: 'システムアップデート完了', time: '3時間前', type: 'system' },
-    { title: 'バックアップ作成', time: '昨日', type: 'backup' }
+    { icon: IconHome2, label: 'ホーム', href: '/' },
+    { icon: IconArticle, label: '記事管理', href: '/dashboard', active: true },
+    { icon: IconCategory, label: 'カテゴリー', href: '/dashboard/categories' },
+    { icon: IconMessage, label: 'コメント', href: '/dashboard/comments' },
+    { icon: IconUser, label: 'ユーザー', href: '/dashboard/users' },
+    { icon: IconSettings, label: '設定', href: '/dashboard/settings' }
 ];
 
 export default function Dashboard() {
     const theme = useMantineTheme();
+    const router = useRouter();
     const [opened, setOpened] = useState(false);
     const [colorScheme, setColorScheme] = useState<'light' | 'dark'>('light');
+    const [articles, setArticles] = useState<Article[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [deleteId, setDeleteId] = useState<number | null>(null);
+    const [opened1, { open: openDeleteModal, close: closeDeleteModal }] = useDisclosure(false);
 
     const toggleColorScheme = () => {
         setColorScheme(colorScheme === 'light' ? 'dark' : 'light');
+    };
+
+    useEffect(() => {
+        fetchArticles();
+    }, []);
+
+    const fetchArticles = async () => {
+        setLoading(true);
+        try {
+            const response = await getArticles();
+            setArticles(response.data || []);
+        } catch (error) {
+            console.error('記事の取得に失敗しました:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleDeleteClick = (id: number) => {
+        setDeleteId(id);
+        openDeleteModal();
+    };
+
+    const confirmDelete = async () => {
+        if (deleteId) {
+            try {
+                // 実際の API 呼び出しはまだ実装されていませんが、ここで削除 API を呼び出します
+                // await deleteArticle(deleteId);
+                console.log(`記事 ID: ${deleteId} を削除しました`);
+
+                // 記事一覧を更新
+                setArticles(articles.filter(article => article.id !== deleteId));
+                closeDeleteModal();
+            } catch (error) {
+                console.error('記事の削除に失敗しました:', error);
+            }
+        }
+    };
+
+    // 日付をフォーマットする関数
+    const formatDate = (dateString: string) => {
+        if (!dateString) return '未公開';
+        const date = new Date(dateString);
+        return date.toLocaleDateString('ja-JP', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+    };
+
+    const navigateToCreate = () => {
+        router.push('/dashboard/articles/create');
+    };
+
+    const navigateToEdit = (id: number) => {
+        router.push(`/dashboard/articles/edit/${id}`);
     };
 
     return (
@@ -95,7 +156,7 @@ export default function Dashboard() {
                             hiddenFrom="sm"
                             size="sm"
                         />
-                        <Text size="lg" fw={700}>ダッシュボード</Text>
+                        <Text size="lg" fw={700}>管理画面</Text>
                     </Group>
                     <Group>
                         <Tooltip label="検索">
@@ -134,7 +195,7 @@ export default function Dashboard() {
                 >
                     <Group justify="center">
                         <ThemeIcon radius="xl" size="md" variant="filled" color="blue">
-                            <IconDeviceDesktopAnalytics size="1rem" />
+                            <IconArticle size="1rem" />
                         </ThemeIcon>
                         <Text fw={700} size="md" c="white">Admin Panel</Text>
                     </Group>
@@ -145,13 +206,14 @@ export default function Dashboard() {
                         <NavLink
                             key={item.label}
                             leftSection={
-                                <ThemeIcon color={item.color} variant="light" size={30} radius="xl">
+                                <ThemeIcon color={item.active ? 'blue' : 'gray'} variant="light" size={30} radius="xl">
                                     <item.icon size="1rem" />
                                 </ThemeIcon>
                             }
                             label={item.label}
                             active={item.active}
-                            variant="filled"
+                            variant={item.active ? 'filled' : 'light'}
+                            onClick={() => item.href && router.push(item.href)}
                         />
                     ))}
                 </Stack>
@@ -175,132 +237,91 @@ export default function Dashboard() {
 
             <AppShell.Main>
                 <Box mb={30} mt={10}>
-                    <Title order={2} mb="xl">サイト統計概要</Title>
-
-                    <SimpleGrid
-                        cols={{ base: 1, sm: 2, md: 4 }}
-                        spacing="lg"
-                    >
-                        {stats.map((stat) => (
-                            <Paper
-                                key={stat.title}
-                                radius="md"
-                                withBorder
-                                p="lg"
-                                shadow="xs"
-                            >
-                                <Group justify="space-between">
-                                    <Text size="sm" c="dimmed" fw={500}>
-                                        {stat.title}
-                                    </Text>
-                                    <ThemeIcon
-                                        color={stat.color}
-                                        variant="light"
-                                        radius="xl"
-                                        size="xl"
-                                    >
-                                        <stat.icon size={rem(20)} />
-                                    </ThemeIcon>
-                                </Group>
-
-                                <Group justify="space-between" align="flex-end" mt="md">
-                                    <Text fw={700} size="xl">
-                                        {stat.value}
-                                    </Text>
-                                    <Badge
-                                        color={stat.diff > 0 ? 'teal' : 'red'}
-                                        variant="light"
-                                        leftSection={
-                                            stat.diff > 0 ?
-                                                <IconChevronUp size={rem(12)} style={{ marginBottom: 4 }} /> :
-                                                <IconChevronDown size={rem(12)} style={{ marginBottom: 4 }} />
-                                        }
-                                    >
-                                        {stat.diff > 0 ? '+' : ''}{stat.diff}%
-                                    </Badge>
-                                </Group>
-
-                                <Text size="xs" c="dimmed" mt={7}>
-                                    前回比較
-                                </Text>
-                            </Paper>
-                        ))}
-                    </SimpleGrid>
-                </Box>
-
-                <SimpleGrid cols={{ base: 1, md: 2 }} spacing="lg" mb={30}>
-                    <Card withBorder shadow="xs" radius="md" padding="md">
-                        <Card.Section withBorder inheritPadding py="xs">
-                            <Group justify="space-between">
-                                <Text fw={600}>直近の月別訪問者数</Text>
-                                <Button size="xs" variant="light">詳細</Button>
-                            </Group>
-                        </Card.Section>
-
-                        <Box h={250} mt="md" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <Text c="dimmed" ta="center">
-                                訪問者グラフは現在準備中です
-                            </Text>
-                        </Box>
-                    </Card>
-
-                    <Card withBorder shadow="xs" radius="md" padding="md">
-                        <Card.Section withBorder inheritPadding py="xs">
-                            <Group justify="space-between">
-                                <Text fw={600}>最近のアクティビティ</Text>
-                                <Button size="xs" variant="light">すべて表示</Button>
-                            </Group>
-                        </Card.Section>
-
-                        <Stack gap="xs" mt="md">
-                            {recentActivities.map((activity, index) => (
-                                <Box key={index}>
-                                    <Group justify="space-between" align="flex-start">
-                                        <Box>
-                                            <Text size="sm" fw={500}>
-                                                {activity.title}
-                                            </Text>
-                                            <Text size="xs" c="dimmed">
-                                                {activity.time}
-                                            </Text>
-                                        </Box>
-                                        <Badge
-                                            size="sm"
-                                            variant="dot"
-                                            color={
-                                                activity.type === 'user' ? 'blue' :
-                                                    activity.type === 'post' ? 'green' :
-                                                        activity.type === 'system' ? 'orange' : 'gray'
-                                            }
-                                        >
-                                            {activity.type}
-                                        </Badge>
-                                    </Group>
-                                    {index < recentActivities.length - 1 && <Divider mt="xs" />}
-                                </Box>
-                            ))}
-                        </Stack>
-                    </Card>
-                </SimpleGrid>
-
-                <Paper withBorder shadow="xs" radius="md" p="md" mb={30}>
-                    <Group justify="space-between" mb="md">
-                        <Title order={3}>クイックアクション</Title>
+                    <Group justify="space-between" mb="xl">
+                        <Title order={2}>記事管理</Title>
+                        <Button
+                            leftSection={<IconPlus size="1rem" />}
+                            onClick={navigateToCreate}
+                        >
+                            新規記事作成
+                        </Button>
                     </Group>
 
-                    <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="md">
-                        <Button variant="outline" leftSection={<IconDeviceDesktopAnalytics size="1rem" />}>
-                            分析レポート
-                        </Button>
-                        <Button variant="outline" leftSection={<IconUsers size="1rem" />}>
-                            ユーザー管理
-                        </Button>
-                        <Button variant="outline" leftSection={<IconSettings size="1rem" />}>
-                            システム設定
-                        </Button>
-                    </SimpleGrid>
-                </Paper>
+                    <Paper withBorder shadow="xs" radius="md" p="md">
+                        <Box pos="relative" style={{ minHeight: '300px' }}>
+                            <LoadingOverlay visible={loading} overlayProps={{ radius: "sm", blur: 2 }} />
+
+                            <Table striped highlightOnHover withTableBorder>
+                                <Table.Thead>
+                                    <Table.Tr>
+                                        <Table.Th>タイトル</Table.Th>
+                                        <Table.Th>カテゴリー</Table.Th>
+                                        <Table.Th>著者</Table.Th>
+                                        <Table.Th>公開日</Table.Th>
+                                        <Table.Th style={{ width: '100px' }}>いいね</Table.Th>
+                                        <Table.Th style={{ width: '100px' }}>コメント</Table.Th>
+                                        <Table.Th style={{ width: '100px' }}>操作</Table.Th>
+                                    </Table.Tr>
+                                </Table.Thead>
+                                <Table.Tbody>
+                                    {articles.length === 0 && !loading ? (
+                                        <Table.Tr>
+                                            <Table.Td colSpan={7}>
+                                                <Text ta="center" py="md">記事がありません</Text>
+                                            </Table.Td>
+                                        </Table.Tr>
+                                    ) : (
+                                        articles.map((article) => (
+                                            <Table.Tr key={article.id}>
+                                                <Table.Td>{article.title}</Table.Td>
+                                                <Table.Td>{article.category?.name || '-'}</Table.Td>
+                                                <Table.Td>{article.author?.name || '-'}</Table.Td>
+                                                <Table.Td>{formatDate(article.published_at)}</Table.Td>
+                                                <Table.Td ta="center">{article.likes_count}</Table.Td>
+                                                <Table.Td ta="center">{article.comments_count}</Table.Td>
+                                                <Table.Td>
+                                                    <Menu shadow="md" width={200}>
+                                                        <Menu.Target>
+                                                            <ActionIcon>
+                                                                <IconDotsVertical size="1rem" />
+                                                            </ActionIcon>
+                                                        </Menu.Target>
+
+                                                        <Menu.Dropdown>
+                                                            <Menu.Item
+                                                                leftSection={<IconEdit size={14} />}
+                                                                onClick={() => navigateToEdit(article.id)}
+                                                            >
+                                                                編集
+                                                            </Menu.Item>
+                                                            <Menu.Item
+                                                                leftSection={<IconTrash size={14} />}
+                                                                color="red"
+                                                                onClick={() => handleDeleteClick(article.id)}
+                                                            >
+                                                                削除
+                                                            </Menu.Item>
+                                                        </Menu.Dropdown>
+                                                    </Menu>
+                                                </Table.Td>
+                                            </Table.Tr>
+                                        ))
+                                    )}
+                                </Table.Tbody>
+                            </Table>
+                        </Box>
+                    </Paper>
+                </Box>
             </AppShell.Main>
+
+            {/* 削除確認モーダル */}
+            <Modal opened={opened1} onClose={closeDeleteModal} title="記事の削除" centered>
+                <Text mb="md">この記事を削除してもよろしいですか？この操作は元に戻せません。</Text>
+                <Group justify="flex-end" mt="md">
+                    <Button variant="outline" onClick={closeDeleteModal}>キャンセル</Button>
+                    <Button color="red" onClick={confirmDelete}>削除する</Button>
+                </Group>
+            </Modal>
         </AppShell>
     );
 }
