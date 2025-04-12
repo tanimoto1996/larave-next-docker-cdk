@@ -36,6 +36,10 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
+  // 表示する記事の数を管理
+  const [visibleCount, setVisibleCount] = useState<number>(6);
+  const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
+
   // 記事のいいね状態を管理
   const [likedArticles, setLikedArticles] = useState<number[]>([]);
 
@@ -72,10 +76,31 @@ export default function Home() {
     fetchData();
   }, []);
 
+  // カテゴリー変更時にvisibleCountをリセット
+  useEffect(() => {
+    setVisibleCount(6);
+  }, [selectedCategory]);
+
   // カテゴリーでフィルタリングされた記事
   const filteredArticles = selectedCategory
     ? articles.filter(article => article.category?.name === selectedCategory)
     : articles;
+
+  // 現在表示する記事
+  const visibleArticles = filteredArticles.slice(0, visibleCount);
+
+  // もっと記事を読み込む関数
+  const loadMoreArticles = () => {
+    setIsLoadingMore(true);
+
+    // 実際のAPIページネーションがある場合はここで追加のデータをフェッチする
+    // この例では既存データから追加で表示するだけ
+
+    setTimeout(() => {
+      setVisibleCount(prevCount => prevCount + 6);
+      setIsLoadingMore(false);
+    }, 300); // ローディングの動作を見せるための遅延
+  };
 
   // 日付をフォーマットする関数
   const formatDate = (dateString: string) => {
@@ -86,6 +111,9 @@ export default function Home() {
       day: 'numeric'
     });
   };
+
+  // 追加で表示できる記事があるかどうか
+  const hasMoreArticles = visibleArticles.length < filteredArticles.length;
 
   return (
     <>
@@ -105,29 +133,52 @@ export default function Home() {
         <Box
           style={{
             position: 'absolute',
+            top: 0,
             bottom: 0,
             left: 0,
             right: 0,
             zIndex: 2,
-            padding: '50px 0'
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
           }}
         >
           <Container size="lg">
-            <Title c="white" size={rem(50)} fw={900} ta="center">
+            <Title
+              c="white"
+              fw={900}
+              ta="center"
+              size="h1"
+              style={{
+                '@media (maxWidth: 576px)': {
+                  fontSize: rem(28)
+                },
+                '@media (minWidth: 577px) and (maxWidth: 768px)': {
+                  fontSize: rem(36)
+                },
+                '@media (minWidth: 769px)': {
+                  fontSize: rem(50)
+                }
+              }}
+            >
               知識の旅へようこそ
             </Title>
-            <Text c="white" size="xl" ta="center" mt="md" mx="auto" maw={700}>
-              最新のトレンド、興味深い物語、専門家の洞察を発見しましょう。
+            <Text c="white" ta="center" mt="md" mx="auto" maw={700}
+              style={{
+                '@media (maxWidth: 576px)': {
+                  fontSize: 'var(--mantine-font-size-md)'
+                },
+                '@media (minWidth: 577px) and (maxWidth: 768px)': {
+                  fontSize: 'var(--mantine-font-size-lg)'
+                },
+                '@media (minWidth: 769px)': {
+                  fontSize: 'var(--mantine-font-size-xl)'
+                }
+              }}
+            >
+              最新のトレンド、興味深い物語、専門家の洞察を発見しましょう。<br />
               あなたの好奇心を満たす記事がここにあります。
             </Text>
-            <Group justify="center" mt="xl">
-              <Button size="lg" radius="md" color="blue" variant="filled">
-                最新記事を読む
-              </Button>
-              <Button size="lg" radius="md" color="gray" variant="outline" c="white">
-                トピックを探す
-              </Button>
-            </Group>
           </Container>
         </Box>
       </Box>
@@ -135,7 +186,7 @@ export default function Home() {
       {/* トピックナビゲーション */}
       <Container size="lg" mb={50}>
         <Paper shadow="xs" p="md" withBorder>
-          <SimpleGrid cols={{ base: 2, xs: 3, sm: 4, md: 6 }}>
+          <SimpleGrid cols={{ base: 2, xs: 3, sm: 4, md: 5 }}>
             <Button
               variant={selectedCategory === null ? 'filled' : 'light'}
               radius="xl"
@@ -164,7 +215,6 @@ export default function Home() {
       <Container size="lg">
         <Group justify="space-between" mb="xl">
           <Title order={2}>最新の記事</Title>
-          <Button variant="subtle">すべての記事を見る</Button>
         </Group>
 
         {/* ローディング中の表示 */}
@@ -189,13 +239,13 @@ export default function Home() {
         )}
 
         {/* 記事一覧 */}
-        {!loading && !error && filteredArticles.length > 0 && (
+        {!loading && !error && visibleArticles.length > 0 && (
           <SimpleGrid
             cols={{ base: 1, sm: 2, md: 3 }}
             spacing="lg"
             verticalSpacing="xl"
           >
-            {filteredArticles.map((article) => (
+            {visibleArticles.map((article) => (
               <Card key={article.id} shadow="sm" padding="lg" radius="md" withBorder>
                 <Card.Section>
                   <Box pos="relative">
@@ -273,12 +323,25 @@ export default function Home() {
           </SimpleGrid>
         )}
 
-        <Group justify="center" mt={50} mb={100}>
-          <Button variant="outline" size="lg" radius="md">
-            もっと記事を読む
-          </Button>
-        </Group>
+        {/* もっと記事を読むボタン */}
+        {hasMoreArticles && (
+          <Group justify="center" mt={50} mb={50}>
+            <Button
+              variant="outline"
+              size="lg"
+              radius="md"
+              onClick={loadMoreArticles}
+              loading={isLoadingMore}
+              disabled={isLoadingMore}
+            >
+              もっと記事を読む（{visibleArticles.length}/{filteredArticles.length}）
+            </Button>
+          </Group>
+        )}
       </Container>
+
+      {/* スペーサー - 最新情報セクションとの間に適切なスペースを設ける */}
+      <Box h={50} />
 
       {/* ニュースレター登録セクション */}
       <Box bg="gray.1" py={60}>
