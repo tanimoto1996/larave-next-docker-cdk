@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Responses\ApiResponse;
+use App\Http\Requests\Auth\LoginRequest;
+use App\Http\Requests\Auth\LogoutRequest;
+use App\Http\Requests\Auth\GetUserRequest;
 
 /**
  * 認証コントローラー
@@ -16,31 +19,28 @@ class AuthController extends Controller
     /**
      * ユーザーログイン処理
      *
-     * @param Request $request ログイン情報を含むリクエスト
+     * @param LoginRequest $request バリデーション済みのログイン情報を含むリクエスト
      * @return \Illuminate\Http\JsonResponse ログイン結果のレスポンス
      */
-    public function login(Request $request)
+    public function login(LoginRequest $request)
     {
-        $credentials = $request->validate([
-            'email' => ['required','email'],
-            'password' => ['required']
-        ]);
+        $credentials = $request->only('email', 'password');
 
         if (Auth::attempt($credentials)) {
             // セッション再生成
             $request->session()->regenerate();
             return ApiResponse::success(null, 'おっけーだね');
         }
-        return ApiResponse::error('Login failed', 401);
+        return ApiResponse::error('Login failed', null, 401);
     }
 
     /**
      * ユーザーログアウト処理
      *
-     * @param Request $request リクエスト
+     * @param LogoutRequest $request バリデーション済みのリクエスト
      * @return \Illuminate\Http\JsonResponse ログアウト結果のレスポンス
      */
-    public function logout(Request $request)
+    public function logout(LogoutRequest $request)
     {
         Auth::logout();
         $request->session()->invalidate();
@@ -51,10 +51,10 @@ class AuthController extends Controller
     /**
      * 現在認証されているユーザー情報を取得
      *
-     * @param Request $request リクエスト
+     * @param GetUserRequest $request バリデーション済みのリクエスト
      * @return \Illuminate\Http\JsonResponse ユーザー情報のレスポンス
      */
-    public function user(Request $request)
+    public function user(GetUserRequest $request)
     {
         return ApiResponse::success($request->user()); // Auth::user() と同義
     }
