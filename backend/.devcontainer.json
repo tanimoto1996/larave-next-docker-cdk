@@ -30,5 +30,6 @@
             ]
         }
     },
-    "remoteUser": "root"
+    "remoteUser": "root",
+    "postCreateCommand": "cd /var/www/html/backend && composer install"
 }
