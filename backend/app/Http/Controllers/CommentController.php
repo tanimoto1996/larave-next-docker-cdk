@@ -26,7 +26,7 @@ class CommentController extends Controller
         $article = Article::published()->findBySlug($slug)->first();
 
         if (!$article) {
-            return ApiResponse::error('記事が見つかりませんでした', 404);
+            return ApiResponse::error('記事が見つかりませんでした', null, 404);
         }
 
         // バリデーション済みのデータを使用
