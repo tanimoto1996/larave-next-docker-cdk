@@ -27,7 +27,7 @@ import {
 } from '@mantine/core';
 import { IconArrowLeft, IconUpload, IconInfoCircle, IconCheck } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
-// import { getArticleById, getCategories, getAuthors, updateArticle } from '../../../../lib/api';
+import { getArticle, getArticleFormData, updateArticle } from '../../../../../../lib/adminApi';
 
 // 記事データの型定義
 interface Article {
@@ -85,64 +85,39 @@ export default function EditArticle() {
     const [categories, setCategories] = useState<Category[]>([]);
     const [authors, setAuthors] = useState<Author[]>([]);
 
-    // 記事データのロード
+    // 記事データとマスタデータのロード
     useEffect(() => {
-        // ダミーデータ（実際のAPIが実装されるまで）
-        setCategories([
-            { id: 1, name: 'バックエンド', slug: 'backend' },
-            { id: 2, name: 'フロントエンド', slug: 'frontend' },
-            { id: 3, name: 'AI', slug: 'ai' },
-            { id: 4, name: 'AWS', slug: 'aws' }
-        ]);
+        const fetchData = async () => {
+            setLoading(true);
+            try {
+                // 1. 記事データの取得
+                const articleResponse = await getArticle(parseInt(articleId));
 
-        setAuthors([
-            { id: 1, name: '山田太郎' },
-            { id: 2, name: '佐藤花子' },
-            { id: 3, name: '鈴木一郎' }
-        ]);
+                // 2. フォーム用データ（カテゴリーと著者）の取得
+                const formDataResponse = await getArticleFormData();
 
-        // ダミーの記事データをセット
-        const dummyArticle: Article = {
-            id: parseInt(articleId),
-            title: 'ReactとVueの実践的比較',
-            slug: 'react-vue-comparison',
-            content: '<h2>はじめに</h2><p>この記事では、ReactとVueの主要な違いと、それぞれのフレームワークの長所・短所について詳しく解説します。</p><h2>パフォーマンスの比較</h2><p>両フレームワークともに高いパフォーマンスを誇りますが、特定のユースケースでは違いが出てきます...</p>',
-            excerpt: 'ReactとVueの主要な違いと、それぞれのフレームワークの長所・短所について詳しく解説するガイドです。',
-            category_id: 2, // フロントエンド
-            author_id: 1, // 山田太郎
-            is_published: true,
-            published_at: '2025-04-10',
-            image_url: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80',
+                // データをセット
+                if (articleResponse.data) {
+                    setFormData(articleResponse.data);
+                }
+
+                if (formDataResponse.data) {
+                    setCategories(formDataResponse.data.categories || []);
+                    setAuthors(formDataResponse.data.authors || []);
+                }
+            } catch (error) {
+                console.error('データの取得に失敗しました:', error);
+                notifications.show({
+                    title: 'エラー',
+                    message: '記事データの取得に失敗しました',
+                    color: 'red',
+                });
+            } finally {
+                setLoading(false);
+            }
         };
 
-        setFormData(dummyArticle);
-        setLoading(false);
-
-        // 実際のAPI呼び出し（コメントアウトを解除して使用）
-        // const fetchData = async () => {
-        //     setLoading(true);
-        //     try {
-        //         const [articleRes, categoriesRes, authorsRes] = await Promise.all([
-        //             getArticleById(articleId),
-        //             getCategories(),
-        //             getAuthors()
-        //         ]);
-        //         
-        //         setFormData(articleRes.data);
-        //         setCategories(categoriesRes.data || []);
-        //         setAuthors(authorsRes.data || []);
-        //     } catch (error) {
-        //         console.error('データの取得に失敗しました:', error);
-        //         notifications.show({
-        //             title: 'エラー',
-        //             message: '記事データの取得に失敗しました',
-        //             color: 'red',
-        //         });
-        //     } finally {
-        //         setLoading(false);
-        //     }
-        // };
-        // fetchData();
+        fetchData();
     }, [articleId]);
 
     const handleInputChange = (field: string, value: any) => {
@@ -154,13 +129,41 @@ export default function EditArticle() {
         setSubmitting(true);
 
         try {
-            // ここでAPIを呼び出して記事を更新
-            // const formDataToSend = new FormData();
-            // Object.entries(formData).forEach(([key, value]) => {
-            //     if (value !え== null) formDataToSend.append(key, value.toString());
-            // });
-            // if (image) formDataToSend.append('image', image);
-            // await updateArticle(articleId, formDataToSend);
+            // FormDataオブジェクトを作成して記事データを設定
+            const formDataToSend = new FormData();
+
+            // フィールドごとに適切な型で送信
+            Object.entries(formData).forEach(([key, value]) => {
+                // 画像URLフィールドはサーバーに送信しない（既存の画像パスは別途処理）
+                if (key === 'image_url') {
+                    return;
+                }
+
+                if (key === 'is_published') {
+                    // booleanを1または0に変換（LaravelのBoolean型バリデーション用）
+                    formDataToSend.append(key, value === true ? '1' : '0');
+                } else {
+                    // その他のフィールドは通常通り送信
+                    formDataToSend.append(key, value === null ? '' : value.toString());
+                }
+            });
+
+            // 画像がある場合は追加、ない場合は画像変更なしフラグを設定
+            if (image) {
+                formDataToSend.append('image', image);
+            } else if (formData.image_url) {
+                // 既存の画像がある場合は画像変更なしフラグを設定
+                formDataToSend.append('image_not_changed', '1');
+            }
+
+            // デバッグ: FormDataの内容を確認
+            console.log('送信データ:');
+            for (const pair of formDataToSend.entries()) {
+                console.log(pair[0] + ': ' + pair[1]);
+            }
+
+            // APIを呼び出して記事を更新
+            await updateArticle(parseInt(articleId), formDataToSend);
 
             // 成功通知
             notifications.show({
@@ -172,13 +175,28 @@ export default function EditArticle() {
 
             // ダッシュボードに戻る
             router.push('/dashboard');
-        } catch (error) {
+        } catch (error: any) {
             console.error('記事の更新に失敗しました:', error);
-            notifications.show({
-                title: 'エラー',
-                message: '記事の更新中にエラーが発生しました',
-                color: 'red',
-            });
+
+            // エラーレスポンスの詳細を取得して表示
+            const errorMessage = error.response?.data?.message || '記事の更新中にエラーが発生しました';
+            const validationErrors = error.response?.data?.errors;
+
+            // バリデーションエラーがある場合は詳細なエラーメッセージを表示
+            if (validationErrors) {
+                const errorDetails = Object.values(validationErrors).flat().join('\n');
+                notifications.show({
+                    title: 'バリデーションエラー',
+                    message: errorDetails,
+                    color: 'red',
+                });
+            } else {
+                notifications.show({
+                    title: 'エラー',
+                    message: errorMessage,
+                    color: 'red',
+                });
+            }
         } finally {
             setSubmitting(false);
         }
@@ -306,6 +324,7 @@ export default function EditArticle() {
                                                     height={120}
                                                     radius="md"
                                                     mb={10}
+                                                    alt={`${formData.title}のアイキャッチ画像`}
                                                 />
                                             </Box>
                                         )}

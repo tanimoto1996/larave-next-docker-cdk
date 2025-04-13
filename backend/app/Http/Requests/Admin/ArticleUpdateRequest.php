@@ -29,7 +29,7 @@ class ArticleUpdateRequest extends FormRequest
             'author_id' => 'sometimes|exists:authors,id',
             'excerpt' => 'sometimes|string',
             'content' => 'sometimes|string',
-            'image' => 'nullable|image|max:2048',
+            // 'image' => 'nullable|image|max:2048',
             'is_published' => 'sometimes|boolean',
             'published_at' => 'nullable|date',
         ];
@@ -46,7 +46,7 @@ class ArticleUpdateRequest extends FormRequest
             'title.max' => 'タイトルは255文字以内で入力してください。',
             'category_id.exists' => '選択されたカテゴリーは存在しません。',
             'author_id.exists' => '選択された著者は存在しません。',
-            'image.image' => '画像ファイルを選択してください。',
+            // 'image.image' => '画像ファイルを選択してください。',
             'image.max' => '画像サイズは2MB以下にしてください。',
         ];
     }
