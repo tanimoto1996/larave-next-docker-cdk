@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, FormEvent, ChangeEvent } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, FormEvent, ChangeEvent, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
     TextInput,
     PasswordInput,
@@ -16,7 +16,7 @@ import {
     Alert,
     Center,
 } from '@mantine/core';
-import { IconAt, IconLock, IconAlertCircle, IconShieldLock } from '@tabler/icons-react';
+import { IconAt, IconLock, IconAlertCircle, IconShieldLock, IconInfoCircle } from '@tabler/icons-react';
 import axiosClient from '../../../lib/axios';
 
 type LoginCredentials = {
@@ -32,7 +32,22 @@ export default function Login() {
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [infoMessage, setInfoMessage] = useState<string | null>(null);
     const router = useRouter();
+    const searchParams = useSearchParams();
+
+    useEffect(() => {
+        // URLからリダイレクト理由を取得
+        const redirectReason = searchParams.get('redirectReason');
+
+        if (redirectReason === 'session_expired') {
+            setInfoMessage('セッションの有効期限が切れました。再度ログインしてください。');
+        } else if (redirectReason === 'auth_required') {
+            setInfoMessage('この機能を利用するにはログインが必要です。');
+        } else if (redirectReason === 'unauthenticated') {
+            setInfoMessage('ログインが必要なページです。認証情報を入力してください。');
+        }
+    }, [searchParams]);
 
     const handleInputChange = (e: ChangeEvent<HTMLInputElement>): void => {
         const { name, value } = e.target;
@@ -97,6 +112,12 @@ export default function Login() {
                 <Title order={2} ta="center" mt="md" mb={30}>
                     管理画面へログイン
                 </Title>
+
+                {infoMessage && (
+                    <Alert icon={<IconInfoCircle size={16} />} color="blue" mb="md">
+                        <Text size="sm">{infoMessage}</Text>
+                    </Alert>
+                )}
 
                 {error && (
                     <Alert icon={<IconAlertCircle size={16} />} color="red" mb="md">

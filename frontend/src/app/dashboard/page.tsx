@@ -42,8 +42,9 @@ import {
     IconMessage,
 } from '@tabler/icons-react';
 import { useDisclosure } from '@mantine/hooks';
-import { getArticles } from '../../../lib/api';
+import { getArticles, getUser } from '../../../lib/api';
 import { deleteArticle } from '../../../lib/adminApi';
+import axiosClient from '../../../lib/axios';
 
 // 記事データの型定義
 interface Article {
@@ -77,14 +78,33 @@ export default function Dashboard() {
     const [loading, setLoading] = useState(true);
     const [deleteId, setDeleteId] = useState<number | null>(null);
     const [opened1, { open: openDeleteModal, close: closeDeleteModal }] = useDisclosure(false);
+    const [authenticating, setAuthenticating] = useState(true);
 
     const toggleColorScheme = () => {
         setColorScheme(colorScheme === 'light' ? 'dark' : 'light');
     };
 
+    // 認証チェック
     useEffect(() => {
-        fetchArticles();
-    }, []);
+        const checkAuth = async () => {
+            try {
+                await getUser();
+                setAuthenticating(false);
+            } catch (error) {
+                console.error('認証エラー:', error);
+                // リダイレクト時にパラメーターを追加
+                router.push('/login?redirectReason=unauthenticated');
+            }
+        };
+
+        checkAuth();
+    }, [router]);
+
+    useEffect(() => {
+        if (!authenticating) {
+            fetchArticles();
+        }
+    }, [authenticating]);
 
     const fetchArticles = async () => {
         setLoading(true);
@@ -95,6 +115,16 @@ export default function Dashboard() {
             console.error('記事の取得に失敗しました:', error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    // ログアウト処理
+    const handleLogout = async () => {
+        try {
+            await axiosClient.post('/api/logout');
+            router.push('/login');
+        } catch (error) {
+            console.error('ログアウト中にエラーが発生しました:', error);
         }
     };
 
@@ -136,6 +166,15 @@ export default function Dashboard() {
     const navigateToEdit = (id: number) => {
         router.push(`/dashboard/articles/edit/${id}`);
     };
+
+    // 認証チェック中はローディング表示
+    if (authenticating) {
+        return (
+            <Box style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+                <LoadingOverlay visible={true} overlayProps={{ radius: "sm", blur: 2 }} />
+            </Box>
+        );
+    }
 
     return (
         <AppShell
@@ -228,7 +267,7 @@ export default function Dashboard() {
                                 <Text size="xs" c="dimmed">admin@example.com</Text>
                             </Box>
                         </Group>
-                        <ActionIcon variant="subtle" color="gray">
+                        <ActionIcon variant="subtle" color="gray" onClick={handleLogout}>
                             <IconLogout size="1.2rem" stroke={1.5} />
                         </ActionIcon>
                     </Group>
