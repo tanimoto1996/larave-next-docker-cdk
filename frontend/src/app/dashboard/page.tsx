@@ -43,6 +43,7 @@ import {
 } from '@tabler/icons-react';
 import { useDisclosure } from '@mantine/hooks';
 import { getArticles } from '../../../lib/api';
+import { deleteArticle } from '../../../lib/adminApi';
 
 // 記事データの型定義
 interface Article {
@@ -105,8 +106,7 @@ export default function Dashboard() {
     const confirmDelete = async () => {
         if (deleteId) {
             try {
-                // 実際の API 呼び出しはまだ実装されていませんが、ここで削除 API を呼び出します
-                // await deleteArticle(deleteId);
+                await deleteArticle(deleteId);
                 console.log(`記事 ID: ${deleteId} を削除しました`);
 
                 // 記事一覧を更新
