@@ -86,9 +86,17 @@ export default function CreateArticle() {
         const fetchFormData = async () => {
             setLoading(true);
             try {
-                const formData = await getArticleFormData();
-                setCategories(formData.categories || []);
-                setAuthors(formData.authors || []);
+                const response = await getArticleFormData();
+                console.log('API response:', response); // デバッグ用にレスポンスを出力
+
+                // APIレスポンスの構造に合わせて正しくデータを取得
+                const { data } = response;
+                if (data) {
+                    setCategories(data.categories || []);
+                    setAuthors(data.authors || []);
+                    console.log('Categories loaded:', data.categories); // カテゴリーデータを確認
+                    console.log('Authors loaded:', data.authors); // 著者データを確認
+                }
             } catch (error) {
                 console.error('データの取得に失敗しました:', error);
                 notifications.show({
@@ -115,12 +123,26 @@ export default function CreateArticle() {
         try {
             // FormDataオブジェクトを作成して記事データを設定
             const formDataToSend = new FormData();
+
+            // フィールドごとに適切な型で送信
             Object.entries(formData).forEach(([key, value]) => {
-                if (value !== null) formDataToSend.append(key, value.toString());
+                if (key === 'is_published') {
+                    // booleanを1または0に変換（LaravelのBoolean型バリデーション用）
+                    formDataToSend.append(key, value === true ? '1' : '0');
+                } else {
+                    // その他のフィールドは通常通り送信
+                    formDataToSend.append(key, value === null ? '' : value.toString());
+                }
             });
 
             // 画像がある場合は追加
             if (image) formDataToSend.append('image', image);
+
+            // デバッグ: FormDataの内容を確認
+            console.log('送信データ:');
+            for (const pair of formDataToSend.entries()) {
+                console.log(pair[0] + ': ' + pair[1]);
+            }
 
             // APIを呼び出して記事を作成
             await createArticle(formDataToSend);
@@ -135,13 +157,28 @@ export default function CreateArticle() {
 
             // ダッシュボードに戻る
             router.push('/dashboard');
-        } catch (error) {
+        } catch (error: any) {
             console.error('記事の作成に失敗しました:', error);
-            notifications.show({
-                title: 'エラー',
-                message: '記事の作成中にエラーが発生しました',
-                color: 'red',
-            });
+
+            // エラーレスポンスの詳細を取得して表示
+            const errorMessage = error.response?.data?.message || '記事の作成中にエラーが発生しました';
+            const validationErrors = error.response?.data?.errors;
+
+            // バリデーションエラーがある場合は詳細なエラーメッセージを表示
+            if (validationErrors) {
+                const errorDetails = Object.values(validationErrors).flat().join('\n');
+                notifications.show({
+                    title: 'バリデーションエラー',
+                    message: errorDetails,
+                    color: 'red',
+                });
+            } else {
+                notifications.show({
+                    title: 'エラー',
+                    message: errorMessage,
+                    color: 'red',
+                });
+            }
         } finally {
             setSubmitting(false);
         }
@@ -241,11 +278,11 @@ export default function CreateArticle() {
                                             label="カテゴリー"
                                             placeholder="カテゴリーを選択"
                                             required
-                                            data={categories.map((cat) => ({
-                                                value: cat.id.toString(),
+                                            data={categories.length > 0 ? categories.map((cat) => ({
+                                                value: String(cat.id),
                                                 label: cat.name
-                                            }))}
-                                            value={formData.category_id?.toString()}
+                                            })) : []}
+                                            value={formData.category_id ? String(formData.category_id) : null}
                                             onChange={(value) => handleInputChange('category_id', value ? parseInt(value) : null)}
                                         />
 
@@ -253,11 +290,11 @@ export default function CreateArticle() {
                                             label="著者"
                                             placeholder="著者を選択"
                                             required
-                                            data={authors.map((author) => ({
-                                                value: author.id.toString(),
+                                            data={authors.length > 0 ? authors.map((author) => ({
+                                                value: String(author.id),
                                                 label: author.name
-                                            }))}
-                                            value={formData.author_id?.toString()}
+                                            })) : []}
+                                            value={formData.author_id ? String(formData.author_id) : null}
                                             onChange={(value) => handleInputChange('author_id', value ? parseInt(value) : null)}
                                         />
 
