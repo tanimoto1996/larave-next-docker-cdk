@@ -15,9 +15,11 @@ import {
     ThemeIcon,
     Alert,
     Center,
+    LoadingOverlay,
 } from '@mantine/core';
 import { IconAt, IconLock, IconAlertCircle, IconShieldLock, IconInfoCircle } from '@tabler/icons-react';
 import axiosClient from '../../../lib/axios';
+import { getUser } from '../../../lib/api';
 
 type LoginCredentials = {
     email: string;
@@ -33,8 +35,29 @@ export default function Login() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [infoMessage, setInfoMessage] = useState<string | null>(null);
+    const [checkingAuth, setCheckingAuth] = useState(true);
     const router = useRouter();
     const searchParams = useSearchParams();
+
+    useEffect(() => {
+        // 認証状態をチェック
+        const checkAuthStatus = async () => {
+            setCheckingAuth(true);
+            try {
+                // ユーザー情報を取得
+                await getUser();
+                // 認証済みの場合はダッシュボードへリダイレクト
+                router.push('/dashboard');
+            } catch (error) {
+                // 認証されていない場合は何もしない（このページにとどまる）
+                console.log('認証されていません、ログインページを表示します:', error);
+            } finally {
+                setCheckingAuth(false);
+            }
+        };
+
+        checkAuthStatus();
+    }, [router]);
 
     useEffect(() => {
         // URLからリダイレクト理由を取得
@@ -87,6 +110,15 @@ export default function Login() {
             setLoading(false);
         }
     };
+
+    // 認証チェック中はローディングオーバーレイを表示
+    if (checkingAuth) {
+        return (
+            <Container size={450} my={40} style={{ position: 'relative', minHeight: '400px' }}>
+                <LoadingOverlay visible={true} overlayProps={{ radius: "sm", blur: 2 }} />
+            </Container>
+        );
+    }
 
     return (
         <Container size={450} my={40}>

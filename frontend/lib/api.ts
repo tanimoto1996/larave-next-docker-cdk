@@ -5,7 +5,7 @@ import axiosClient from '../lib/axios';
  */
 export const getUser = async () => {
     try {
-        const response = await axiosClient.get('/user');
+        const response = await axiosClient.get('/api/user');
         return response.data;
     } catch (error) {
         throw error; // 認証エラーがあれば throw して、ダッシュボードからログイン画面へ飛ばす
