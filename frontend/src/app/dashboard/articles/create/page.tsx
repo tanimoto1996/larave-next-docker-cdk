@@ -26,7 +26,7 @@ import {
 } from '@mantine/core';
 import { IconArrowLeft, IconUpload, IconInfoCircle, IconCheck } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
-// import { getCategories, getAuthors, createArticle } from '../../../../lib/api';
+import { getArticleFormData, createArticle } from '../../../../../lib/adminApi';
 
 // 記事データの型定義
 interface Article {
@@ -82,45 +82,26 @@ export default function CreateArticle() {
 
     // カテゴリーと著者のデータロード
     useEffect(() => {
-        // ダミーデータ（実際のAPIが実装されるまで）
-        setCategories([
-            { id: 1, name: 'バックエンド', slug: 'backend' },
-            { id: 2, name: 'フロントエンド', slug: 'frontend' },
-            { id: 3, name: 'AI', slug: 'ai' },
-            { id: 4, name: 'AWS', slug: 'aws' }
-        ]);
+        // APIからフォームデータ（カテゴリーと著者）を取得
+        const fetchFormData = async () => {
+            setLoading(true);
+            try {
+                const formData = await getArticleFormData();
+                setCategories(formData.categories || []);
+                setAuthors(formData.authors || []);
+            } catch (error) {
+                console.error('データの取得に失敗しました:', error);
+                notifications.show({
+                    title: 'エラー',
+                    message: 'マスタデータの取得に失敗しました',
+                    color: 'red',
+                });
+            } finally {
+                setLoading(false);
+            }
+        };
 
-        setAuthors([
-            { id: 1, name: '山田太郎' },
-            { id: 2, name: '佐藤花子' },
-            { id: 3, name: '鈴木一郎' }
-        ]);
-
-        setLoading(false);
-
-        // 実際のAPI呼び出し（コメントアウトを解除して使用）
-        // const fetchData = async () => {
-        //     setLoading(true);
-        //     try {
-        //         const [categoriesRes, authorsRes] = await Promise.all([
-        //             getCategories(),
-        //             getAuthors()
-        //         ]);
-        //         
-        //         setCategories(categoriesRes.data || []);
-        //         setAuthors(authorsRes.data || []);
-        //     } catch (error) {
-        //         console.error('データの取得に失敗しました:', error);
-        //         notifications.show({
-        //             title: 'エラー',
-        //             message: 'マスタデータの取得に失敗しました',
-        //             color: 'red',
-        //         });
-        //     } finally {
-        //         setLoading(false);
-        //     }
-        // };
-        // fetchData();
+        fetchFormData();
     }, []);
 
     const handleInputChange = (field: string, value: any) => {
@@ -132,13 +113,17 @@ export default function CreateArticle() {
         setSubmitting(true);
 
         try {
-            // ここでAPIを呼び出して記事を作成
-            // const formDataToSend = new FormData();
-            // Object.entries(formData).forEach(([key, value]) => {
-            //     if (value !== null) formDataToSend.append(key, value.toString());
-            // });
-            // if (image) formDataToSend.append('image', image);
-            // await createArticle(formDataToSend);
+            // FormDataオブジェクトを作成して記事データを設定
+            const formDataToSend = new FormData();
+            Object.entries(formData).forEach(([key, value]) => {
+                if (value !== null) formDataToSend.append(key, value.toString());
+            });
+
+            // 画像がある場合は追加
+            if (image) formDataToSend.append('image', image);
+
+            // APIを呼び出して記事を作成
+            await createArticle(formDataToSend);
 
             // 成功通知
             notifications.show({
