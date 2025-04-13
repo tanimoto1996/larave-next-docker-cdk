@@ -27,7 +27,7 @@ Route::get('/articles/{slug}', [ArticleController::class, 'show']);
 Route::get('/categories', [ArticleController::class, 'categories']);
 Route::post('/articles/{slug}/comments', [CommentController::class, 'store']);
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware('auth')->group(function () {
     Route::get('/user', [AuthController::class, 'user']);
     
     // 管理者用ルート
