@@ -38,7 +38,6 @@ interface Article {
     author_id: number | null;
     is_published: boolean;
     published_at: string;
-    image_url?: string;
 }
 
 // カテゴリーデータの型定義
@@ -75,6 +74,28 @@ export default function CreateArticle() {
 
     // アップロードファイル
     const [image, setImage] = useState<File | null>(null);
+
+    // 画像URLを生成するヘルパー関数
+    const getImageUrl = (imagePath?: string): string => {
+      if (!imagePath) return '';
+      // バックエンドのURL（環境変数などから取得するのが理想）
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+      return `${backendUrl}/storage/${imagePath}`;
+    };
+    
+    // 画像プレビューURL
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+    // 画像が選択されたときにプレビューを生成
+    useEffect(() => {
+        if (image) {
+            const objectUrl = URL.createObjectURL(image);
+            setPreviewUrl(objectUrl);
+            
+            // クリーンアップ関数
+            return () => URL.revokeObjectURL(objectUrl);
+        }
+    }, [image]);
 
     // カテゴリーと著者のオプション
     const [categories, setCategories] = useState<Category[]>([]);
@@ -306,6 +327,13 @@ export default function CreateArticle() {
                                             onChange={setImage}
                                             rightSection={<IconUpload size="1.1rem" stroke={1.5} />}
                                         />
+
+                                        {previewUrl && (
+                                            <Box mt="md">
+                                                <Text size="sm" color="dimmed">プレビュー:</Text>
+                                                <img src={previewUrl} alt="プレビュー画像" style={{ maxWidth: '100%' }} />
+                                            </Box>
+                                        )}
 
                                         <Switch
                                             label="公開する"

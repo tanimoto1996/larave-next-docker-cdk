@@ -40,7 +40,7 @@ interface Article {
     author_id: number;
     is_published: boolean;
     published_at: string;
-    image_url?: string;
+    image?: string;
 }
 
 // カテゴリーデータの型定義
@@ -80,6 +80,14 @@ export default function EditArticle() {
 
     // アップロードファイル
     const [image, setImage] = useState<File | null>(null);
+
+    // 画像URLを生成するヘルパー関数
+    const getImageUrl = (imagePath?: string): string => {
+      if (!imagePath) return '';
+      // バックエンドのURL（環境変数などから取得するのが理想）
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+      return `${backendUrl}/storage/${imagePath}`;
+    };
 
     // カテゴリーと著者のオプション
     const [categories, setCategories] = useState<Category[]>([]);
@@ -151,7 +159,7 @@ export default function EditArticle() {
             // 画像がある場合は追加、ない場合は画像変更なしフラグを設定
             if (image) {
                 formDataToSend.append('image', image);
-            } else if (formData.image_url) {
+            } else if (formData.image) {
                 // 既存の画像がある場合は画像変更なしフラグを設定
                 formDataToSend.append('image_not_changed', '1');
             }
@@ -316,11 +324,11 @@ export default function EditArticle() {
                                             onChange={(value) => handleInputChange('author_id', value ? parseInt(value) : null)}
                                         />
 
-                                        {formData.image_url && (
+                                        {formData.image && (
                                             <Box>
                                                 <Text size="sm" fw={500} mb={5}>現在の画像:</Text>
                                                 <Image
-                                                    src={formData.image_url}
+                                                    src={getImageUrl(formData.image)}
                                                     height={120}
                                                     radius="md"
                                                     mb={10}
@@ -336,6 +344,7 @@ export default function EditArticle() {
                                             value={image}
                                             onChange={setImage}
                                             rightSection={<IconUpload size="1.1rem" stroke={1.5} />}
+                                            description={formData.image ? `現在の画像: ${formData.image}` : ''}
                                         />
 
                                         <Switch
