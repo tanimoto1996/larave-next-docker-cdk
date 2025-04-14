@@ -26,12 +26,17 @@
     "@tiptap/pm": "^2.11.7",
     "@tiptap/react": "^2.11.7",
     "@tiptap/starter-kit": "^2.11.7",
+    "@types/react-syntax-highlighter": "^15.5.13",
     "axios": "^1.8.2",
     "dayjs": "^1.11.13",
     "next": "^15.2.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "recharts": "^2.15.2"
+    "react-markdown": "^10.1.0",
+    "react-syntax-highlighter": "^15.5.0",
+    "recharts": "^2.15.2",
+    "rehype-raw": "^7.0.0",
+    "remark-gfm": "^4.0.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
