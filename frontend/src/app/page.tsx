@@ -13,7 +13,6 @@ interface Article {
   category_id?: number;
   slug: string;
   image?: string;
-  image_url?: string;
   published_at: string;
   author: { name: string };
   excerpt: string;
@@ -27,6 +26,14 @@ interface Category {
   name: string;
   slug: string;
 }
+
+// 画像URLを生成するヘルパー関数
+const getImageUrl = (imagePath?: string): string => {
+  if (!imagePath) return 'https://placehold.co/600x400?text=No+Image';
+  // バックエンドのURL（環境変数などから取得するのが理想）
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+  return `${backendUrl}/storage/${imagePath}`;
+};
 
 export default function Home() {
   // 記事データとローディング状態
@@ -61,6 +68,9 @@ export default function Home() {
           getArticles(),
           getCategories()
         ]);
+
+        console.log('Fetched articles:', articlesData);
+        console.log('Fetched categories:', categoriesData);
 
         setArticles(articlesData.data || []);
         setCategories(categoriesData.data || []);
@@ -250,7 +260,7 @@ export default function Home() {
                 <Card.Section>
                   <Box pos="relative">
                     <Image
-                      src={article.image_url || 'https://placehold.co/600x400?text=No+Image'}
+                      src={getImageUrl(article.image)}
                       height={200}
                       alt={article.title}
                     />
