@@ -29,7 +29,7 @@ class ArticleStoreRequest extends FormRequest
             'author_id' => 'required|exists:authors,id',
             'excerpt' => 'required|string',
             'content' => 'required|string',
-            'image' => 'nullable|image|max:2048',
+            'image' => 'nullable|image|max:5012',
             'is_published' => 'boolean',
             'published_at' => 'nullable|date',
         ];
