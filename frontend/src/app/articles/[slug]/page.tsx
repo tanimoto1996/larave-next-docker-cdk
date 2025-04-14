@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { getArticleBySlug } from '../../../../lib/api';
 import { Container, Title, Text, Badge, Group, Image, Loader, Center, Box, Paper, Divider, Button } from '@mantine/core';
 import { IconCalendar, IconUser, IconHeart, IconMessageCircle2, IconArrowLeft } from '@tabler/icons-react';
+import MarkdownRenderer from '../../../components/MarkdownRenderer';
 
 // 記事データの型定義
 interface Article {
@@ -57,11 +58,6 @@ export default function ArticleDetail() {
             month: 'long',
             day: 'numeric'
         });
-    };
-
-    // HTMLコンテンツを安全に表示する
-    const renderContent = (content: string) => {
-        return { __html: content };
     };
 
     // 前のページに戻る関数
@@ -127,12 +123,9 @@ export default function ArticleDetail() {
                         />
                     )}
 
-                    {/* 本文 */}
+                    {/* 本文 - マークダウンレンダラーを使用 */}
                     <Paper p="md" withBorder radius="md" mb="xl">
-                        <div
-                            className="article-content"
-                            dangerouslySetInnerHTML={renderContent(article.content)}
-                        />
+                        <MarkdownRenderer content={article.content} />
                     </Paper>
 
                     {/* エンゲージメント情報 */}

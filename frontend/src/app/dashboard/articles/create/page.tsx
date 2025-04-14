@@ -27,6 +27,7 @@ import {
 import { IconArrowLeft, IconUpload, IconInfoCircle, IconCheck } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import { getArticleFormData, createArticle } from '../../../../../lib/adminApi';
+import MarkdownEditor from '../../../../components/MarkdownEditor';
 
 // 記事データの型定義
 interface Article {
@@ -281,15 +282,15 @@ export default function CreateArticle() {
                                             onChange={(e) => handleInputChange('excerpt', e.target.value)}
                                         />
 
-                                        <Textarea
-                                            label="内容"
-                                            placeholder="記事の本文"
-                                            required
-                                            autosize
-                                            minRows={10}
-                                            value={formData.content}
-                                            onChange={(e) => handleInputChange('content', e.target.value)}
-                                        />
+                                        <Box>
+                                            <Text size="sm" fw={500} mb={5}>内容</Text>
+                                            <MarkdownEditor
+                                                value={formData.content}
+                                                onChange={(value) => handleInputChange('content', value)}
+                                                minRows={10}
+                                                placeholder="マークダウンで記事を書いてください..."
+                                            />
+                                        </Box>
                                     </Stack>
                                 </Grid.Col>
 
@@ -342,7 +343,9 @@ export default function CreateArticle() {
                                         />
 
                                         <Alert variant="light" color="blue" title="入力のヒント" icon={<IconInfoCircle />}>
-                                            記事の内容はHTMLタグを使用して書式を設定できます。例: &lt;h2&gt;見出し&lt;/h2&gt;、&lt;p&gt;段落&lt;/p&gt;、&lt;strong&gt;強調&lt;/strong&gt;など。
+                                            記事の内容はマークダウン形式で書くことができます。
+                                            <br />
+                                            見出しは # (h1) や ## (h2) で、リストは - や * で作成できます。コードブロックは ```で囲みます。
                                         </Alert>
                                     </Stack>
                                 </Grid.Col>
