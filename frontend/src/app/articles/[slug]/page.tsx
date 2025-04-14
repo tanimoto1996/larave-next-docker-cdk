@@ -1,10 +1,10 @@
 'use client';
 
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { getArticleBySlug } from '../../../../lib/api';
-import { Container, Title, Text, Badge, Group, Image, Loader, Center, Box, Paper, Divider } from '@mantine/core';
-import { IconCalendar, IconUser, IconEye, IconHeart, IconMessageCircle2 } from '@tabler/icons-react';
+import { Container, Title, Text, Badge, Group, Image, Loader, Center, Box, Paper, Divider, Button } from '@mantine/core';
+import { IconCalendar, IconUser, IconHeart, IconMessageCircle2, IconArrowLeft } from '@tabler/icons-react';
 
 // 記事データの型定義
 interface Article {
@@ -22,6 +22,7 @@ interface Article {
 
 export default function ArticleDetail() {
     const params = useParams();
+    const router = useRouter();
     const slug = params.slug as string;
 
     const [article, setArticle] = useState<Article | null>(null);
@@ -63,6 +64,11 @@ export default function ArticleDetail() {
         return { __html: content };
     };
 
+    // 前のページに戻る関数
+    const handleGoBack = () => {
+        router.back();
+    };
+
     return (
         <Container size="md" py={50}>
             {loading ? (
@@ -75,6 +81,16 @@ export default function ArticleDetail() {
                 </Center>
             ) : article ? (
                 <>
+                    {/* 戻るボタン */}
+                    <Button
+                        leftSection={<IconArrowLeft size="1rem" />}
+                        variant="subtle"
+                        mb="lg"
+                        onClick={handleGoBack}
+                    >
+                        戻る
+                    </Button>
+
                     {/* 記事ヘッダー */}
                     <Title order={1} mb="md">{article.title}</Title>
 
@@ -96,10 +112,6 @@ export default function ArticleDetail() {
                             <Text size="sm" c="dimmed">
                                 {article.author.name}
                             </Text>
-                        </Group>
-                        <Group gap="xs">
-                            <IconEye size="1rem" />
-                            <Text size="sm" c="dimmed">閲覧数 1,234</Text>
                         </Group>
                     </Group>
 
