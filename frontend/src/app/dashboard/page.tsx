@@ -63,10 +63,10 @@ interface Article {
 const navItems = [
     { icon: IconHome2, label: 'ホーム', href: '/' },
     { icon: IconArticle, label: '記事管理', href: '/dashboard', active: true },
-    { icon: IconCategory, label: 'カテゴリー', href: '/dashboard/categories' },
-    { icon: IconMessage, label: 'コメント', href: '/dashboard/comments' },
-    { icon: IconUser, label: 'ユーザー', href: '/dashboard/users' },
-    { icon: IconSettings, label: '設定', href: '/dashboard/settings' }
+    // { icon: IconCategory, label: 'カテゴリー', href: '/dashboard/categories' },
+    // { icon: IconMessage, label: 'コメント', href: '/dashboard/comments' },
+    // { icon: IconUser, label: 'ユーザー', href: '/dashboard/users' },
+    // { icon: IconSettings, label: '設定', href: '/dashboard/settings' }
 ];
 
 export default function Dashboard() {
