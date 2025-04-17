@@ -55,21 +55,38 @@ export const getCategories = async () => {
  * 記事のいいね数を更新する
  * 
  * @param string slug - 記事のスラグ
- * @param boolean increment - いいねを増やす場合はtrue、減らす場合はfalse
+ * @param boolean isLiked - いいねを追加する場合はtrue、削除する場合はfalse
  * @returns 更新後のいいね数
  */
-export const updateArticleLikes = async (slug: string, increment: boolean) => {
+export const updateArticleLikes = async (slug: string, isLiked: boolean) => {
     try {
-        const response = await axiosClient.post(`/api/articles/${slug}/likes`, { increment });
-        return response.data;
+      const response = await axiosClient.post(`/api/articles/${slug}/likes`, { isLiked });
+      return {
+        success: true,
+        data: response.data.data
+      };
     } catch (error: any) {
-        if (error.response) {
-            console.error(`APIエラー: ステータスコード ${error.response.status} - ${error.response.data.message}`);
-        } else if (error.request) {
-            console.error('APIリクエストエラー: サーバーから応答がありません');
-        } else {
-            console.error('APIリクエスト設定エラー:', error.message);
-        }
-        throw error;
+      // エラーログを詳細に記録
+      if (error.response) {
+        console.error(`APIエラー: ステータスコード ${error.response.status} - ${error.response.data?.message || 'エラーメッセージなし'}`);
+        console.error('エラーレスポンス:', error.response);
+        
+        return {
+          success: false,
+          error: error.response.data?.message || 'APIエラーが発生しました'
+        };
+      } else if (error.request) {
+        console.error('APIリクエストエラー: サーバーから応答がありません', error.request);
+        return {
+          success: false,
+          error: 'サーバーから応答がありません'
+        };
+      } else {
+        console.error('エラー:', error.message);
+        return {
+          success: false,
+          error: error.message
+        };
+      }
     }
-};
+  };

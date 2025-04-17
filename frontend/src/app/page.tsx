@@ -3,7 +3,7 @@
 import { Container, Title, Text, SimpleGrid, Card, Image, Badge, Group, Button, Box, Overlay, rem, Paper, ActionIcon, Loader, Center } from '@mantine/core';
 import { IconBookmark, IconShare, IconHeart } from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
-import { getArticles, getCategories } from '../../lib/api';
+import { getArticles, getCategories, updateArticleLikes } from '../../lib/api';
 
 // 記事データの型定義
 interface Article {
@@ -50,11 +50,50 @@ export default function Home() {
   // 記事のいいね状態を管理
   const [likedArticles, setLikedArticles] = useState<number[]>([]);
 
-  const toggleLike = (id: number) => {
-    if (likedArticles.includes(id)) {
-      setLikedArticles(likedArticles.filter(articleId => articleId !== id));
-    } else {
-      setLikedArticles([...likedArticles, id]);
+  // localStorageからいいね状態を読み込む
+  useEffect(() => {
+    const storedLikes = localStorage.getItem('likedArticles');
+    if (storedLikes) {
+      setLikedArticles(JSON.parse(storedLikes));
+    }
+  }, []);
+
+  // いいね状態が変わったらlocalStorageに保存
+  useEffect(() => {
+    localStorage.setItem('likedArticles', JSON.stringify(likedArticles));
+  }, [likedArticles]);
+
+  const toggleLike = async (id: number, slug: string) => {
+    try {
+      const isLiked = likedArticles.includes(id);
+      
+      // APIを呼び出していいね状態を更新
+      const response = await updateArticleLikes(slug, !isLiked);
+      
+      if (response.success) {
+        if (isLiked) {
+          setLikedArticles(likedArticles.filter(articleId => articleId !== id));
+        } else {
+          setLikedArticles([...likedArticles, id]);
+        }
+        
+        // 記事一覧を最新の状態に更新
+        const updatedArticles = articles.map(article => {
+          if (article.id === id) {
+            return {
+              ...article,
+              likes_count: response.data.likes_count
+            };
+          }
+          return article;
+        });
+        
+        setArticles(updatedArticles);
+      } else {
+        console.error('いいねの更新に失敗しました');
+      }
+    } catch (error) {
+      console.error('いいね更新エラー:', error);
     }
   };
 
@@ -299,14 +338,20 @@ export default function Home() {
 
                 <Group justify="space-between" mt="md">
                   <Group gap={8}>
-                    <ActionIcon
-                      color={likedArticles.includes(article.id) ? "red" : "gray"}
-                      variant="subtle"
-                      onClick={() => toggleLike(article.id)}
+                    <ActionIcon 
+                      onClick={() => toggleLike(article.id, article.slug)}
+                      color={likedArticles.includes(article.id) ? 'red' : 'gray'}
+                      variant={likedArticles.includes(article.id) ? 'filled' : 'subtle'}
                     >
-                      <IconHeart size="1.2rem" />
+                      <IconHeart 
+                        size="1.2rem" 
+                        style={{ 
+                          fill: likedArticles.includes(article.id) ? 'currentcolor' : 'none',
+                          stroke: 'currentcolor' 
+                        }} 
+                      />
                     </ActionIcon>
-                    <Text size="sm" c="dimmed">{likedArticles.includes(article.id) ? article.likes_count + 1 : article.likes_count}</Text>
+                    <Text size="sm" c="dimmed">{article.likes_count}</Text>
 
                     <ActionIcon color="gray" variant="subtle">
                       <IconBookmark size="1.2rem" />

@@ -103,13 +103,15 @@ class ArticleController extends Controller
                 ], 404);
             }
 
-            // リクエストからいいね数の増減を取得
-            $increment = $request->input('increment', true);
+            // リクエストからいいね状態を取得
+            // isLikedがtrueならいいね追加、falseならいいね削除
+            $isLiked = $request->input('isLiked', false);
             
-            if ($increment) {
+            if ($isLiked) {
+                // いいねを追加
                 $article->likes_count += 1;
             } else {
-                // 0未満にならないように制御
+                // いいねを削除（0未満にならないように制御）
                 $article->likes_count = max(0, $article->likes_count - 1);
             }
 
@@ -124,7 +126,7 @@ class ArticleController extends Controller
         } catch (\Exception $e) {
             \Log::error('いいね更新エラー: ' . $e->getMessage(), [
                 'slug' => $slug,
-                'increment' => $request->input('increment'),
+                'isLiked' => $request->input('isLiked'),
                 'error' => $e->getMessage()
             ]);
             

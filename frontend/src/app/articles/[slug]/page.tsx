@@ -2,8 +2,8 @@
 
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { getArticleBySlug } from '../../../../lib/api';
-import { Container, Title, Text, Badge, Group, Image, Loader, Center, Box, Paper, Divider, Button } from '@mantine/core';
+import { getArticleBySlug, updateArticleLikes } from '../../../../lib/api';
+import { Container, Title, Text, Badge, Group, Image, Loader, Center, Box, Paper, Divider, Button, ActionIcon } from '@mantine/core';
 import { IconCalendar, IconUser, IconHeart, IconMessageCircle2, IconArrowLeft } from '@tabler/icons-react';
 import MarkdownRenderer from '../../../components/MarkdownRenderer';
 
@@ -29,6 +29,7 @@ export default function ArticleDetail() {
     const [article, setArticle] = useState<Article | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
+    const [isLiked, setIsLiked] = useState<boolean>(false);
 
     useEffect(() => {
         const fetchArticle = async () => {
@@ -37,6 +38,20 @@ export default function ArticleDetail() {
                 const response = await getArticleBySlug(slug);
                 setArticle(response.data);
                 setError(null);
+                
+                // ローカルストレージからいいね状態を確認（クライアントサイドのみ）
+                if (typeof window !== 'undefined') {
+                    try {
+                        const storedLikes = localStorage.getItem('likedArticles');
+                        if (storedLikes) {
+                            const likedIds = JSON.parse(storedLikes) as number[];
+                            setIsLiked(likedIds.includes(response.data.id));
+                        }
+                    } catch (err) {
+                        console.error('ローカルストレージからのいいね状態の読み込みに失敗しました:', err);
+                        setIsLiked(false);
+                    }
+                }
             } catch (err) {
                 console.error('記事の取得に失敗しました:', err);
                 setError('記事の取得中にエラーが発生しました。');
@@ -63,6 +78,47 @@ export default function ArticleDetail() {
     // 前のページに戻る関数
     const handleGoBack = () => {
         router.back();
+    };
+
+    // いいね機能の切り替え
+    const toggleLike = async () => {
+        if (!article) return;
+        
+        try {
+            // いいね状態を反転して送信
+            // isLiked: false → バックエンドでは「いいねを削除」
+            // isLiked: true → バックエンドでは「いいねを追加」
+            const response = await updateArticleLikes(slug, !isLiked);
+            
+            if (response.success) {
+                // いいね状態を更新
+                setIsLiked(!isLiked);
+                
+                // 記事のいいね数を更新
+                setArticle({
+                    ...article,
+                    likes_count: response.data.likes_count
+                });
+                
+                // ローカルストレージも更新
+                const storedLikes = localStorage.getItem('likedArticles');
+                let likedIds: number[] = storedLikes ? JSON.parse(storedLikes) : [];
+                
+                if (isLiked) {
+                    // いいねを取り消す場合
+                    likedIds = likedIds.filter(id => id !== article.id);
+                } else {
+                    // いいねを追加する場合
+                    likedIds.push(article.id);
+                }
+                
+                localStorage.setItem('likedArticles', JSON.stringify(likedIds));
+            } else {
+                console.error('いいねの更新に失敗しました');
+            }
+        } catch (error) {
+            console.error('いいね更新エラー:', error);
+        }
     };
 
     return (
@@ -133,7 +189,19 @@ export default function ArticleDetail() {
                         <Group justify="apart">
                             <Group>
                                 <Group gap="xs">
-                                    <IconHeart size="1.2rem" color="red" />
+                                    <ActionIcon 
+                                        onClick={toggleLike} 
+                                        color={isLiked ? 'red' : 'gray'}
+                                        variant={isLiked ? 'filled' : 'subtle'}
+                                    >
+                                        <IconHeart 
+                                            size="1.2rem" 
+                                            style={{ 
+                                                fill: isLiked ? 'currentcolor' : 'none',
+                                                stroke: 'currentcolor' 
+                                            }} 
+                                        />
+                                    </ActionIcon>
                                     <Text>{article.likes_count} いいね</Text>
                                 </Group>
                                 <Group gap="xs">
