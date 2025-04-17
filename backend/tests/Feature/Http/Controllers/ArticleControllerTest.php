@@ -299,4 +299,131 @@ class ArticleControllerTest extends TestCase
         ]);
         $response->assertStatus(401); // Unauthorized
     }
+
+    /**
+     * いいね追加機能のテスト
+     * いいねボタンが押された場合に記事のいいね数が増加することを確認する
+     */
+    #[Test]
+    public function update_likes_increases_likes_count_when_liked(): void
+    {
+        // 公開済み記事を作成（いいね数は0）
+        $article = Article::factory()->create([
+            'slug' => 'test-like-article',
+            'is_published' => true,
+            'likes_count' => 0,
+            'category_id' => $this->category->id,
+            'author_id' => $this->author->id
+        ]);
+
+        // いいねボタンを押した場合のリクエスト
+        $response = $this->postJson("/api/articles/{$article->slug}/likes", [
+            'isLiked' => true
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'success' => true,
+                'data' => [
+                    'likes_count' => 1
+                ]
+            ]);
+
+        // データベースのいいね数が更新されていることを確認
+        $this->assertDatabaseHas('articles', [
+            'id' => $article->id,
+            'likes_count' => 1
+        ]);
+    }
+
+    /**
+     * いいね取り消し機能のテスト
+     * いいね取り消しが行われた場合に記事のいいね数が減少することを確認する
+     */
+    #[Test]
+    public function update_likes_decreases_likes_count_when_unliked(): void
+    {
+        // 公開済み記事を作成（いいね数は初期値として5に設定）
+        $article = Article::factory()->create([
+            'slug' => 'test-unlike-article',
+            'is_published' => true,
+            'likes_count' => 5,
+            'category_id' => $this->category->id,
+            'author_id' => $this->author->id
+        ]);
+
+        // いいねを取り消す場合のリクエスト
+        $response = $this->postJson("/api/articles/{$article->slug}/likes", [
+            'isLiked' => false
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'success' => true,
+                'data' => [
+                    'likes_count' => 4
+                ]
+            ]);
+
+        // データベースのいいね数が更新されていることを確認
+        $this->assertDatabaseHas('articles', [
+            'id' => $article->id,
+            'likes_count' => 4
+        ]);
+    }
+
+    /**
+     * いいね操作時の記事が存在しない場合のテスト
+     * 存在しない記事のスラグを指定した場合に404エラーが返されることを確認する
+     */
+    #[Test]
+    public function update_likes_returns_404_for_nonexistent_article(): void
+    {
+        // 存在しないスラグでリクエスト
+        $response = $this->postJson("/api/articles/non-existent-slug/likes", [
+            'isLiked' => true
+        ]);
+
+        $response->assertStatus(404)
+            ->assertJson([
+                'success' => false,
+                'message' => '記事「non-existent-slug」が見つかりませんでした'
+            ]);
+    }
+
+    /**
+     * いいね数が0未満にならないことを確認するテスト
+     * いいね数が0の状態でいいねを取り消そうとしても0未満にならないことを確認する
+     */
+    #[Test]
+    public function update_likes_does_not_decrease_below_zero(): void
+    {
+        // 公開済み記事を作成（いいね数は0）
+        $article = Article::factory()->create([
+            'slug' => 'zero-likes-article',
+            'is_published' => true,
+            'likes_count' => 0,
+            'category_id' => $this->category->id,
+            'author_id' => $this->author->id
+        ]);
+
+        // いいね数が0の状態でいいねを取り消そうとする
+        $response = $this->postJson("/api/articles/{$article->slug}/likes", [
+            'isLiked' => false
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'success' => true,
+                'data' => [
+                    'likes_count' => 0  // 0未満にならない
+                ]
+            ]);
+
+        // データベースのいいね数が0のままであることを確認
+        $this->assertDatabaseHas('articles', [
+            'id' => $article->id,
+            'likes_count' => 0
+        ]);
+    }
 }
