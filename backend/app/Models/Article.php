@@ -94,17 +94,6 @@ class Article extends Model
     }
 
     /**
-     * この記事に「いいね」したユーザーを取得
-     *
-     * @return BelongsToMany
-     */
-    public function likedBy(): BelongsToMany
-    {
-        return $this->belongsToMany(User::class, 'article_likes')
-            ->withTimestamps();
-    }
-
-    /**
      * 公開済みの記事のみを取得するスコープ
      *
      * @param Builder $query

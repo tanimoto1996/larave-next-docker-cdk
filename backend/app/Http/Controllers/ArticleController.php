@@ -6,6 +6,7 @@ use App\Models\Article;
 use App\Models\Category;
 use App\Http\Requests\Article\IndexRequest;
 use App\Http\Responses\ApiResponse;
+use Illuminate\Http\Request;
 
 /**
  * 一般公開向け記事コントローラー
@@ -79,6 +80,59 @@ class ArticleController extends Controller
         return response()->json([
             'data' => $article,
         ]);
+    }
+
+    /**
+     * 記事のいいね数を更新
+     *
+     * @param string $slug
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function updateLikes($slug, Request $request)
+    {
+        try {
+            $article = Article::published()
+                ->where('slug', $slug)
+                ->first();
+
+            if (!$article) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "記事「{$slug}」が見つかりませんでした",
+                ], 404);
+            }
+
+            // リクエストからいいね数の増減を取得
+            $increment = $request->input('increment', true);
+            
+            if ($increment) {
+                $article->likes_count += 1;
+            } else {
+                // 0未満にならないように制御
+                $article->likes_count = max(0, $article->likes_count - 1);
+            }
+
+            $article->save();
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'likes_count' => $article->likes_count
+                ],
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('いいね更新エラー: ' . $e->getMessage(), [
+                'slug' => $slug,
+                'increment' => $request->input('increment'),
+                'error' => $e->getMessage()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'いいねの更新中にエラーが発生しました',
+            ], 500);
+        }
     }
 
     /**

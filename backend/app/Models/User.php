@@ -67,17 +67,6 @@ class User extends Authenticatable
     {
         return $this->hasOne(Author::class);
     }
-
-    /**
-     * このユーザーが「いいね」した記事を取得
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
-     */
-    public function likedArticles()
-    {
-        return $this->belongsToMany(Article::class, 'article_likes')
-            ->withTimestamps();
-    }
     
     /**
      * ユーザーが管理者かどうかを判定

@@ -24,6 +24,7 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 // 公開APIルート（認証不要）
 Route::get('/articles', [ArticleController::class, 'index']);
 Route::get('/articles/{slug}', [ArticleController::class, 'show']);
+Route::post('/articles/{slug}/likes', [ArticleController::class, 'updateLikes']);
 Route::get('/categories', [ArticleController::class, 'categories']);
 Route::post('/articles/{slug}/comments', [CommentController::class, 'store']);
 

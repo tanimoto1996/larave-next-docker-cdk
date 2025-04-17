@@ -50,3 +50,26 @@ export const getCategories = async () => {
         throw error;
     }
 };
+
+/**
+ * 記事のいいね数を更新する
+ * 
+ * @param string slug - 記事のスラグ
+ * @param boolean increment - いいねを増やす場合はtrue、減らす場合はfalse
+ * @returns 更新後のいいね数
+ */
+export const updateArticleLikes = async (slug: string, increment: boolean) => {
+    try {
+        const response = await axiosClient.post(`/api/articles/${slug}/likes`, { increment });
+        return response.data;
+    } catch (error: any) {
+        if (error.response) {
+            console.error(`APIエラー: ステータスコード ${error.response.status} - ${error.response.data.message}`);
+        } else if (error.request) {
+            console.error('APIリクエストエラー: サーバーから応答がありません');
+        } else {
+            console.error('APIリクエスト設定エラー:', error.message);
+        }
+        throw error;
+    }
+};

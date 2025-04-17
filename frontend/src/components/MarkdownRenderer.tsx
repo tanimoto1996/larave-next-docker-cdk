@@ -3,6 +3,8 @@
 import { Box } from '@mantine/core';
 import ReactMarkdown from 'react-markdown';
 import { useEffect, useState } from 'react';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { coy as codeStyle } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 interface MarkdownRendererProps {
   content: string;
@@ -18,30 +20,23 @@ export default function MarkdownRenderer({ content, className }: MarkdownRendere
     const loadComponents = async () => {
       try {
         // 必要なプラグインとコンポーネントを読み込む
-        const [
-          { Prism },
-          { vscDarkPlus },
-          remarkGfm,
-          rehypeRaw
-        ] = await Promise.all([
-          import('react-syntax-highlighter'),
-          import('react-syntax-highlighter/dist/cjs/styles/prism'),
+        const [remarkGfm, rehypeRaw] = await Promise.all([
           import('remark-gfm'),
           import('rehype-raw')
         ]);
 
         // ロードされたプラグインとコンポーネントをセットする
         setMarkdownComponents({
-          SyntaxHighlighter: Prism,
-          codeStyle: vscDarkPlus,
+          SyntaxHighlighter,
+          codeStyle,
           remarkPlugins: [remarkGfm.default],
           rehypePlugins: [rehypeRaw.default],
           components: {
             code({ node, inline, className, children, ...props }: any) {
               const match = /language-(\w+)/.exec(className || '');
               return !inline && match ? (
-                <Prism
-                  style={vscDarkPlus as any}
+                <SyntaxHighlighter
+                  style={codeStyle as any}
                   language={match[1]}
                   PreTag="div"
                   wrapLines={true}
@@ -54,7 +49,7 @@ export default function MarkdownRenderer({ content, className }: MarkdownRendere
                   {...props}
                 >
                   {String(children).replace(/\n$/, '')}
-                </Prism>
+                </SyntaxHighlighter>
               ) : (
                 <code className={className} style={{ 
                   wordWrap: 'break-word', 
