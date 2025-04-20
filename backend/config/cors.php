@@ -16,7 +16,13 @@ return [
     */
     'paths' => ['api/*', 'login', 'logout', 'sanctum/csrf-cookie', 'user'],
     'allowed_methods' => ['*'],
-    'allowed_origins' => ['http://localhost:3000', 'http://localhost'], // ワイルドカードではなく具体的なオリジンを指定
+    'allowed_origins' => [
+        'http://localhost:3000', 
+        'http://localhost', 
+        'https://visionaryfuture.shop',
+        'https://www.visionaryfuture.shop',
+        'https://api.visionaryfuture.shop'
+    ], // 本番環境のドメインを追加
     'allowed_headers' => ['*'],
     'exposed_headers' => [],
     'max_age' => 0,

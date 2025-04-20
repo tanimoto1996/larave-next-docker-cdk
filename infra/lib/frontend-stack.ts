@@ -8,12 +8,12 @@ import * as targets from 'aws-cdk-lib/aws-route53-targets';
 import * as acm from 'aws-cdk-lib/aws-certificatemanager';
 import * as elbv2 from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import * as ssm from 'aws-cdk-lib/aws-ssm';
-import * as iam from 'aws-cdk-lib/aws-iam';
 
 interface FrontendStackProps extends cdk.StackProps {
-    backendAlb: elbv2.ApplicationLoadBalancer;
+    backendAlb?: elbv2.ApplicationLoadBalancer; // オプショナルに変更
     domainName: string;
     hostedZoneId: string;
+    cloudfrontCertificateArn?: string; // us-east-1の証明書ARNを受け取る（オプショナル）
 }
 
 export class FrontendStack extends cdk.Stack {
@@ -33,47 +33,53 @@ export class FrontendStack extends cdk.Stack {
             websiteErrorDocument: 'index.html',
             publicReadAccess: false,
             blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
-            removalPolicy: cdk.RemovalPolicy.RETAIN,
+            removalPolicy: cdk.RemovalPolicy.DESTROY,
+            autoDeleteObjects: true,
             encryption: s3.BucketEncryption.S3_MANAGED,
         });
 
-        // ACM証明書の作成（フロントエンド用）
-        const certificate = new acm.DnsValidatedCertificate(this, 'SiteCertificate', {
-            domainName: props.domainName,
-            subjectAlternativeNames: [`*.${props.domainName}`],
-            hostedZone,
-            region: 'us-east-1', // CloudFront用証明書はus-east-1リージョンに作成する必要がある
+        // CloudFront証明書の参照（us-east-1から）
+        let cloudfrontCertificate;
+        
+        if (props.cloudfrontCertificateArn) {
+            // 直接ARNが提供されている場合はそれを使用
+            cloudfrontCertificate = acm.Certificate.fromCertificateArn(
+                this, 
+                'ImportedCloudFrontCertificate', 
+                props.cloudfrontCertificateArn
+            );
+        } else {
+            // SSMパラメータストアから証明書ARNを取得して使用
+            const certificateArn = ssm.StringParameter.valueForStringParameter(
+                this,
+                `/visionaryfuture/${process.env.ENV || 'dev'}/cloudfront-certificate-arn`
+            );
+            
+            cloudfrontCertificate = acm.Certificate.fromCertificateArn(
+                this, 
+                'CloudFrontCertificate', 
+                certificateArn
+            );
+        }
+
+        // CloudFront Origin Access Identity（OAI）の作成
+        const originAccessIdentity = new cloudfront.OriginAccessIdentity(this, 'OriginAccessIdentity', {
+            comment: `OAI for ${props.domainName}`
         });
 
-        // API用の証明書（現在のリージョン）
-        const apiCertificate = new acm.DnsValidatedCertificate(this, 'ApiCertificate', {
-            domainName: `api.${props.domainName}`,
-            hostedZone,
-        });
-
-        // SSM Parameter に証明書のARNを保存
-        new ssm.StringParameter(this, 'ApiCertificateArn', {
-            parameterName: `/visionaryfuture/${process.env.ENV || 'dev'}/api-certificate-arn`,
-            stringValue: apiCertificate.certificateArn,
-        });
-
-        // CloudFront オリジンアクセスコントロール
-        const oac = new cloudfront.CfnOriginAccessControl(this, 'OAC', {
-            originAccessControlConfig: {
-                name: 'S3OriginAccessControl',
-                originAccessControlOriginType: 's3',
-                signingBehavior: 'always',
-                signingProtocol: 'sigv4',
-            },
-        });
+        // S3バケットにOAIからのアクセスを許可
+        frontendBucket.grantRead(originAccessIdentity);
 
         // CloudFront ディストリビューションの作成
         const distribution = new cloudfront.Distribution(this, 'FrontendDistribution', {
             defaultRootObject: 'index.html',
             domainNames: [props.domainName, `www.${props.domainName}`],
-            certificate,
+            certificate: cloudfrontCertificate, // バージニア北部リージョンの証明書を使用
             defaultBehavior: {
-                origin: new origins.S3Origin(frontendBucket),
+                origin: origins.S3BucketOrigin.withOriginAccessIdentity(
+                    frontendBucket,
+                    { originAccessIdentity }
+                ),
                 compress: true,
                 allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
                 viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
@@ -102,29 +108,6 @@ export class FrontendStack extends cdk.Stack {
             ],
         });
 
-        // バケットポリシーの更新（CloudFrontからのアクセスを許可）
-        const cfnDistribution = distribution.node.defaultChild as cloudfront.CfnDistribution;
-        cfnDistribution.addPropertyOverride('DistributionConfig.Origins.0.OriginAccessControlId', oac.attrId);
-
-        // S3バケットポリシーの更新
-        const bucketPolicy = new s3.BucketPolicy(this, 'BucketPolicy', {
-            bucket: frontendBucket,
-        });
-
-        bucketPolicy.document.addStatements(
-            new iam.PolicyStatement({
-                actions: ['s3:GetObject'],
-                effect: iam.Effect.ALLOW,
-                principals: [new iam.ServicePrincipal('cloudfront.amazonaws.com')],
-                resources: [`${frontendBucket.bucketArn}/*`],
-                conditions: {
-                    StringEquals: {
-                        'AWS:SourceArn': `arn:aws:cloudfront::${this.account}:distribution/${distribution.distributionId}`,
-                    },
-                },
-            })
-        );
-
         // Route 53 レコードの作成（フロントエンド用）
         new route53.ARecord(this, 'SiteAliasRecord', {
             recordName: props.domainName,
@@ -138,12 +121,10 @@ export class FrontendStack extends cdk.Stack {
             zone: hostedZone,
         });
 
-        // Backend ALB用のRoute 53レコードの作成
-        new route53.ARecord(this, 'ApiAliasRecord', {
-            recordName: `api.${props.domainName}`,
-            target: route53.RecordTarget.fromAlias(new targets.LoadBalancerTarget(props.backendAlb)),
-            zone: hostedZone,
-        });
+        // バックエンドALBがある場合は、DNSレコードを設定
+        if (props.backendAlb) {
+            this.setupBackendRouting(props.backendAlb, hostedZone, props.domainName);
+        }
 
         // 出力
         new cdk.CfnOutput(this, 'DistributionId', {
@@ -168,6 +149,20 @@ export class FrontendStack extends cdk.Stack {
             value: `https://api.${props.domainName}`,
             description: 'Backend API URL',
             exportName: 'BackendURL',
+        });
+    }
+
+    // バックエンドALBへのルーティングをセットアップするメソッド（修正版）
+    private setupBackendRouting(
+        backendAlb: elbv2.ApplicationLoadBalancer, 
+        hostedZone: route53.IHostedZone,
+        domainName: string
+    ) {
+        // Backend ALB用のRoute 53レコードの作成
+        new route53.ARecord(this, 'ApiAliasRecord', {
+            recordName: `api.${domainName}`,
+            target: route53.RecordTarget.fromAlias(new targets.LoadBalancerTarget(backendAlb)),
+            zone: hostedZone,
         });
     }
 }

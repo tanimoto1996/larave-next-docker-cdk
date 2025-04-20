@@ -18,6 +18,10 @@ use App\Http\Controllers\Admin\CommentController as AdminCommentController;
 |
 */
 
+Route::get('/health', function () {
+    return response()->json(['status' => 'ok'], 200);
+});
+
 Route::post('/login', [AuthController::class, 'login'])->name('login');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 

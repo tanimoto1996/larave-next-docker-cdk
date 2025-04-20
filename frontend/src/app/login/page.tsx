@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, FormEvent, ChangeEvent, useEffect } from 'react';
+import { useState, FormEvent, ChangeEvent, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
     TextInput,
@@ -26,7 +26,8 @@ type LoginCredentials = {
     password: string;
 }
 
-export default function Login() {
+// 検索パラメータを処理するコンポーネント
+function LoginContent() {
     const [credentials, setCredentials] = useState<LoginCredentials>({
         email: '',
         password: ''
@@ -204,5 +205,18 @@ export default function Login() {
                 </form>
             </Paper>
         </Container>
+    );
+}
+
+// メインコンポーネント
+export default function Login() {
+    return (
+        <Suspense fallback={
+            <Container size={450} my={40} style={{ position: 'relative', minHeight: '400px' }}>
+                <LoadingOverlay visible={true} overlayProps={{ radius: "sm", blur: 2 }} />
+            </Container>
+        }>
+            <LoginContent />
+        </Suspense>
     );
 }

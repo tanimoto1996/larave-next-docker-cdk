@@ -14,7 +14,7 @@ interface MarkdownRendererProps {
 export default function MarkdownRenderer({ content, className }: MarkdownRendererProps) {
   // コードハイライトとプラグインを動的に読み込む（クライアントサイドのみ）
   const [MarkdownComponents, setMarkdownComponents] = useState<any>({});
-  
+
   useEffect(() => {
     // クライアントサイドでのみ実行する非同期インポート
     const loadComponents = async () => {
@@ -32,7 +32,7 @@ export default function MarkdownRenderer({ content, className }: MarkdownRendere
           remarkPlugins: [remarkGfm.default],
           rehypePlugins: [rehypeRaw.default],
           components: {
-            code({ node, inline, className, children, ...props }: any) {
+            code({ inline, className, children, ...props }: any) {
               const match = /language-(\w+)/.exec(className || '');
               return !inline && match ? (
                 <SyntaxHighlighter
@@ -41,8 +41,8 @@ export default function MarkdownRenderer({ content, className }: MarkdownRendere
                   PreTag="div"
                   wrapLines={true}
                   wrapLongLines={true}
-                  customStyle={{ 
-                    wordWrap: 'break-word', 
+                  customStyle={{
+                    wordWrap: 'break-word',
                     overflowWrap: 'break-word',
                     whiteSpace: 'pre-wrap'
                   }}
@@ -51,8 +51,8 @@ export default function MarkdownRenderer({ content, className }: MarkdownRendere
                   {String(children).replace(/\n$/, '')}
                 </SyntaxHighlighter>
               ) : (
-                <code className={className} style={{ 
-                  wordWrap: 'break-word', 
+                <code className={className} style={{
+                  wordWrap: 'break-word',
                   overflowWrap: 'break-word',
                   whiteSpace: 'pre-wrap'
                 }} {...props}>

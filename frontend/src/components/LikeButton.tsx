@@ -28,31 +28,31 @@ export default function LikeButton({ articleSlug, initialCount }: LikeButtonProp
     try {
       // いいね状態を反転
       const newLikedState = !isLiked;
-      
+
       // APIを呼び出していいね数を更新
       const response = await updateArticleLikes(articleSlug, newLikedState);
-      
+
       // APIが成功した場合のみ、UI状態とローカルストレージを更新
       if (response.success) {
         setIsLiked(newLikedState);
         setLikesCount(response.data.likes_count);
-        
+
         // ローカルストレージを更新
         const likedArticles = JSON.parse(localStorage.getItem('likedArticles') || '{}');
-        
+
         if (newLikedState) {
           likedArticles[articleSlug] = true;
         } else {
           delete likedArticles[articleSlug];
         }
-        
+
         localStorage.setItem('likedArticles', JSON.stringify(likedArticles));
       } else {
-        console.error('いいねの更新に失敗しました:', response.message || 'サーバーエラー');
+        console.error('いいねの更新に失敗しました:', response.error || 'サーバーエラー');
       }
     } catch (error: any) {
       console.error('いいねの更新に失敗しました', error);
-      
+
       // 開発環境では詳細なエラー情報をコンソールに出力
       if (process.env.NODE_ENV === 'development') {
         if (error.response) {
@@ -64,7 +64,7 @@ export default function LikeButton({ articleSlug, initialCount }: LikeButtonProp
           console.error('リクエスト設定エラー:', error.message);
         }
       }
-      
+
       // UIに通知する代わりに、console.errorでログを残す
       // 将来的には通知コンポーネントを使ってユーザーに通知することも検討
     }

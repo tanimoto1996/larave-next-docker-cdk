@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "export": "next build && next export",
+    "deploy": "next build && next export && aws s3 sync out/ s3://$(aws ssm get-parameter --name \"/visionaryfuture/dev/frontend-bucket-name\" --query \"Parameter.Value\" --output text) --delete && aws cloudfront create-invalidation --distribution-id $(aws ssm get-parameter --name \"/visionaryfuture/dev/cloudfront-distribution-id\" --query \"Parameter.Value\" --output text) --paths \"/*\"",
+    "deploy:shop": "next build && aws s3 sync .next/static/ s3://visionaryfuture.shop-frontend/_next/static/ && aws s3 sync public/ s3://visionaryfuture.shop-frontend/public/ && aws s3 sync .next/server/app/ s3://visionaryfuture.shop-frontend/"
   },
   "dependencies": {
     "@mantine/charts": "^7.17.3",

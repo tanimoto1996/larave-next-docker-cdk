@@ -28,6 +28,7 @@ import { IconArrowLeft, IconUpload, IconInfoCircle, IconCheck } from '@tabler/ic
 import { notifications } from '@mantine/notifications';
 import { getArticleFormData, createArticle } from '../../../../../lib/adminApi';
 import MarkdownEditor from '../../../../components/MarkdownEditor';
+import Image from 'next/image';
 
 // 記事データの型定義
 interface Article {
@@ -76,14 +77,6 @@ export default function CreateArticle() {
     // アップロードファイル
     const [image, setImage] = useState<File | null>(null);
 
-    // 画像URLを生成するヘルパー関数
-    const getImageUrl = (imagePath?: string): string => {
-      if (!imagePath) return '';
-      // バックエンドのURL（環境変数などから取得するのが理想）
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
-      return `${backendUrl}/storage/${imagePath}`;
-    };
-    
     // 画像プレビューURL
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
@@ -92,7 +85,7 @@ export default function CreateArticle() {
         if (image) {
             const objectUrl = URL.createObjectURL(image);
             setPreviewUrl(objectUrl);
-            
+
             // クリーンアップ関数
             return () => URL.revokeObjectURL(objectUrl);
         }
@@ -332,7 +325,14 @@ export default function CreateArticle() {
                                         {previewUrl && (
                                             <Box mt="md">
                                                 <Text size="sm" color="dimmed">プレビュー:</Text>
-                                                <img src={previewUrl} alt="プレビュー画像" style={{ maxWidth: '100%' }} />
+                                                <div style={{ position: 'relative', width: '100%', height: '200px' }}>
+                                                    <Image
+                                                        src={previewUrl}
+                                                        alt="プレビュー画像"
+                                                        fill
+                                                        style={{ objectFit: 'contain' }}
+                                                    />
+                                                </div>
                                             </Box>
                                         )}
 

@@ -21,29 +21,11 @@ export class EcrStack extends cdk.Stack {
             ],
         });
 
-        // フロントエンド用のECRリポジトリ
-        this.frontendRepository = new ecr.Repository(this, 'FrontendRepository', {
-            repositoryName: 'visionaryfuture-frontend',
-            imageScanOnPush: true,
-            lifecycleRules: [
-                {
-                    maxImageCount: 5,
-                    description: 'Keep only 5 images',
-                },
-            ],
-        });
-
         // 出力
         new cdk.CfnOutput(this, 'BackendRepositoryUri', {
             value: this.backendRepository.repositoryUri,
             description: 'The URI of the Backend Repository',
             exportName: 'BackendRepositoryUri',
-        });
-
-        new cdk.CfnOutput(this, 'FrontendRepositoryUri', {
-            value: this.frontendRepository.repositoryUri,
-            description: 'The URI of the Frontend Repository',
-            exportName: 'FrontendRepositoryUri',
         });
     }
 }

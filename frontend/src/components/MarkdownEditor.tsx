@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Box, Tabs, Textarea, Paper } from '@mantine/core';
 import MarkdownRenderer from './MarkdownRenderer';
 

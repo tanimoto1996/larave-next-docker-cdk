@@ -27,9 +27,6 @@ import {
 import {
     IconHome2,
     IconArticle,
-    IconCategory,
-    IconUser,
-    IconSettings,
     IconLogout,
     IconSun,
     IconMoonStars,
@@ -39,7 +36,6 @@ import {
     IconEdit,
     IconTrash,
     IconDotsVertical,
-    IconMessage,
 } from '@tabler/icons-react';
 import { useDisclosure } from '@mantine/hooks';
 import { getArticles, getUser } from '../../../lib/api';
